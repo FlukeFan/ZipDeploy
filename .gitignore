@@ -1,0 +1,10 @@
+
+*/bin
+*/obj
+*/*.csproj.user
+*.suo
+*.sln.cache
+/.vs
+/.vscode
+
+/_output
