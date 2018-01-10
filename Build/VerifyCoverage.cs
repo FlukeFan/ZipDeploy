@@ -18,6 +18,10 @@ namespace Build
             doc.Load(coverageFile);
 
             var lineCoverageNode = doc.SelectSingleNode("/CoverageReport/Summary/Linecoverage");
+
+            if (lineCoverageNode == null || string.IsNullOrWhiteSpace(lineCoverageNode.InnerText))
+                throw new Exception($"Could not find line coverage in {coverageFile}.  Are you missing <DebugType>Full</DebugType> for a .Net Core test suite?");
+
             var actualLineCoverage = double.Parse(lineCoverageNode.InnerText.Replace("%", ""));
 
             if (actualLineCoverage < targetPercentage)
