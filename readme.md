@@ -4,7 +4,7 @@
 ZipDeploy
 =========
 
-Deploy updates to a running Asp.Net Core application by uploading a zip file.
+Deploy updates to a running Asp.Net Core IIS application by uploading a zip file.
 
 Building
 ========
