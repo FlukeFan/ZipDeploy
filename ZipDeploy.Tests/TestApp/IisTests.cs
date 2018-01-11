@@ -9,10 +9,24 @@ namespace ZipDeploy.Tests.TestApp
         [Test]
         public void DeployZip()
         {
-            var iisFolder = Path.Combine(Test.GetOutputFolder(), "IisSite");
+            var outputFolder = Test.GetOutputFolder();
+            var iisFolder = Path.Combine(outputFolder, "IisSite");
             Directory.CreateDirectory(iisFolder);
 
             Iis.CreateIisSite(iisFolder);
+
+            var slnFolder = Test.GetSlnFolder();
+            var srcCopyFolder = Path.Combine(outputFolder, "src");
+
+            if (Directory.Exists(srcCopyFolder))
+                Directory.Delete(srcCopyFolder, true);
+
+            Directory.CreateDirectory(srcCopyFolder);
+
+            var testAppSrc = Path.Combine(slnFolder, "ZipDeploy.TestApp");
+            var testAppCopy = Path.Combine(srcCopyFolder, "ZipDeploy.TestApp");
+
+            FileSystem.CopyDir(testAppSrc, testAppCopy);
 
             Iis.DeleteIisSite();
         }
