@@ -23,12 +23,19 @@ namespace ZipDeploy.Tests.TestApp
 
             Directory.CreateDirectory(srcCopyFolder);
 
-            var testAppSrc = Path.Combine(slnFolder, "ZipDeploy.TestApp");
-            var testAppCopy = Path.Combine(srcCopyFolder, "ZipDeploy.TestApp");
-
-            FileSystem.CopyDir(testAppSrc, testAppCopy);
+            CopySource(slnFolder, srcCopyFolder, "Build");
+            CopySource(slnFolder, srcCopyFolder, "ZipDeploy");
+            CopySource(slnFolder, srcCopyFolder, "ZipDeploy.TestApp");
 
             Iis.DeleteIisSite();
+        }
+
+        private void CopySource(string slnFolder, string srcCopyFolder, string projectName)
+        {
+            var src = Path.Combine(slnFolder, projectName);
+            var copy = Path.Combine(srcCopyFolder, projectName);
+
+            FileSystem.CopyDir(src, copy);
         }
     }
 }
