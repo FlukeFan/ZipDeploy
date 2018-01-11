@@ -30,7 +30,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <TestDependencies Include="$(OutDir)\$(AssemblyName).dll" />
+    <TestDependencies Include="$(OutDir)$(AssemblyName).dll" />
   </ItemGroup>
 
   <ItemGroup>
@@ -50,15 +50,16 @@
 
   <Target Name="RunTestsWithCoverage">
     <PropertyGroup>
-      <LastModifiedTime>%(TestDependencies.ModifiedTime)</LastModifiedTime>
+      <TestStartTime>$([System.DateTime]::Now.ToString(yyyy-MM-dd HH:mm:ss))</TestStartTime>
     </PropertyGroup>
+    <Message Text="TestStartTime=$(TestStartTime)" />
     <Error Text="Coverage will only work from a Windows client.  Current OS: $(OS)" Condition="'$(OS)'!='Windows_NT'" />
     <ColorExec FileName="$(OpenCoverExe)" Arguments="-target:&quot;$(NUnitConsole)&quot; -targetargs:&quot;$(TestAssembly)&quot; -register:user -output:$(CoverageOutput) -returntargetcode -filter:&quot;@(CoverFilter, ' ')&quot; $(CoverFilterFileOption)" WorkingDirectory="$(OutDir)" Condition="$(TargetFramework.Contains(&quot;core&quot;))==False" />
     <ColorExec FileName="$(OpenCoverExe)" Arguments="-target:dotnet.exe -targetargs:&quot;&quot;&quot;$(VsTestConsole)&quot;&quot; $(TestAssembly) --logger:trx&quot; -register:user -oldstyle -output:$(CoverageOutput) -returntargetcode -filter:&quot;@(CoverFilter, ' ')&quot; $(CoverFilterFileOption)" WorkingDirectory="$(OutDir)" Condition="$(TargetFramework.Contains(&quot;core&quot;))==True" />
     <RemoveDir Directories="$(OutDir)CoverageReport" />
     <ColorExec FileName="$(ReportGeneratorExe)" Arguments="-reports:$(OutDir)$(CoverageOutput) -targetdir:$(OutDir)CoverageReport -verbosity:Error -ReportTypes:Html;XmlSummary" />
     <ColorExec FileName="&quot;$(MSBuildThisFileDirectory)bin\Build.exe&quot;" Arguments="VerifyCoverage $(CoverageTarget) $(OutDir)CoverageReport/Summary.xml" />
-    <Touch Files="$(OutDir)$(TestSuccessFlag)" Time="$(LastModifiedTime)" AlwaysCreate="true" />
+    <Touch Files="$(OutDir)$(TestSuccessFlag)" Time="$(TestStartTime)" AlwaysCreate="true" />
   </Target>
 
 </Project>
