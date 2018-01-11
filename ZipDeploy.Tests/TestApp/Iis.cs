@@ -12,11 +12,13 @@ namespace ZipDeploy.Tests.TestApp
         {
             using (var iisManager = new ServerManager())
             {
-                if (iisManager.Sites.Count(s => s.Name == c_iisName) == 0)
-                {
-                    iisManager.Sites.Add("ZipDeployTestApp", iisFolder, c_iisPort);
-                    iisManager.CommitChanges();
-                }
+                var siteCount = iisManager.Sites.Count(s => s.Name == c_iisName);
+
+                if (siteCount > 0)
+                    DeleteIisSite(iisManager);
+
+                iisManager.Sites.Add("ZipDeployTestApp", iisFolder, c_iisPort);
+                iisManager.CommitChanges();
 
                 Test.WriteProgress($"Created IIS site {c_iisName}:{c_iisPort} in {iisFolder}");
             }
@@ -26,11 +28,16 @@ namespace ZipDeploy.Tests.TestApp
         {
             using (var iisManager = new ServerManager())
             {
-                var site = iisManager.Sites.SingleOrDefault(s => s.Name == c_iisName);
-                iisManager.Sites.Remove(site);
-                iisManager.CommitChanges();
-                Test.WriteProgress($"Removed IIS set {c_iisName}");
+                DeleteIisSite(iisManager);
             }
+        }
+
+        private static void DeleteIisSite(ServerManager iisManager)
+        {
+            var site = iisManager.Sites.SingleOrDefault(s => s.Name == c_iisName);
+            iisManager.Sites.Remove(site);
+            iisManager.CommitChanges();
+            Test.WriteProgress($"Removed IIS site {c_iisName}");
         }
     }
 }
