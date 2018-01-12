@@ -35,6 +35,10 @@ namespace ZipDeploy.Tests.TestApp
         private static void DeleteIisSite(ServerManager iisManager)
         {
             var site = iisManager.Sites.SingleOrDefault(s => s.Name == c_iisName);
+
+            if (site == null)
+                return;
+
             iisManager.Sites.Remove(site);
             iisManager.CommitChanges();
             Test.WriteProgress($"Removed IIS site {c_iisName}");

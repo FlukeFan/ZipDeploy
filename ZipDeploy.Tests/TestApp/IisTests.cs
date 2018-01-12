@@ -9,33 +9,28 @@ namespace ZipDeploy.Tests.TestApp
         [Test]
         public void DeployZip()
         {
+            Iis.DeleteIisSite();
+
             var outputFolder = Test.GetOutputFolder();
-            var iisFolder = Path.Combine(outputFolder, "IisSite");
-            Directory.CreateDirectory(iisFolder);
-
-            Iis.CreateIisSite(iisFolder);
-
             var slnFolder = Test.GetSlnFolder();
             var srcCopyFolder = Path.Combine(outputFolder, "src");
 
-            if (Directory.Exists(srcCopyFolder))
-                Directory.Delete(srcCopyFolder, true);
+            FileSystem.CopySource(slnFolder, srcCopyFolder, "Build");
+            FileSystem.CopySource(slnFolder, srcCopyFolder, "ZipDeploy");
+            FileSystem.CopySource(slnFolder, srcCopyFolder, "ZipDeploy.TestApp");
 
-            Directory.CreateDirectory(srcCopyFolder);
+            var testAppfolder = Path.Combine(srcCopyFolder, "ZipDeploy.TestApp");
+            Exec.DotnetPublish(testAppfolder);
 
-            CopySource(slnFolder, srcCopyFolder, "Build");
-            CopySource(slnFolder, srcCopyFolder, "ZipDeploy");
-            CopySource(slnFolder, srcCopyFolder, "ZipDeploy.TestApp");
+            var publishFolder = Path.Combine(testAppfolder, @"bin\Debug\netcoreapp2.0\publish");
+            var iisFolder = Path.Combine(outputFolder, "IisSite");
+
+            FileSystem.DeleteFolder(iisFolder);
+            Directory.Move(publishFolder, iisFolder);
+
+            Iis.CreateIisSite(iisFolder);
 
             Iis.DeleteIisSite();
-        }
-
-        private void CopySource(string slnFolder, string srcCopyFolder, string projectName)
-        {
-            var src = Path.Combine(slnFolder, projectName);
-            var copy = Path.Combine(srcCopyFolder, projectName);
-
-            FileSystem.CopyDir(src, copy);
         }
     }
 }

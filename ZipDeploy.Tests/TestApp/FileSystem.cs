@@ -17,5 +17,20 @@ namespace ZipDeploy.Tests.TestApp
             foreach (var file in Directory.GetFiles(sourceDir, "*", SearchOption.AllDirectories))
                 File.Copy(file, file.Replace(sourceDir, destDir));
         }
+
+        public static void DeleteFolder(string folder)
+        {
+            while (Directory.Exists(folder))
+                try { Directory.Delete(folder, true); }
+                catch { }
+        }
+
+        public static void CopySource(string slnFolder, string srcCopyFolder, string projectName)
+        {
+            var src = Path.Combine(slnFolder, projectName);
+            var copy = Path.Combine(srcCopyFolder, projectName);
+
+            FileSystem.CopyDir(src, copy);
+        }
     }
 }
