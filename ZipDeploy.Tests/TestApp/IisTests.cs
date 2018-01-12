@@ -1,4 +1,6 @@
 ﻿using System.IO;
+using System.Net;
+using FluentAssertions;
 using NUnit.Framework;
 
 namespace ZipDeploy.Tests.TestApp
@@ -30,7 +32,19 @@ namespace ZipDeploy.Tests.TestApp
 
             Iis.CreateIisSite(iisFolder);
 
+            Get("http://localhost:8099").Should().Contain("Version=123");
+            Get("http://localhost:8099/test.js").Should().Contain("alert(123);");
+
             Iis.DeleteIisSite();
+        }
+
+        private string Get(string url)
+        {
+            var request = HttpWebRequest.Create(url);
+            var response = request.GetResponse();
+            using (var stream = response.GetResponseStream())
+            using (var streamReader = new StreamReader(stream))
+                return streamReader.ReadToEnd();
         }
     }
 }
