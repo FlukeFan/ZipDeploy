@@ -61,7 +61,6 @@
   </Target>
 
   <Target Name="After_Clean" AfterTargets="Clean" DependsOnTargets="Init">
-    <RemoveDir Directories="..\packages" />
     <MSBuild Projects="@(ProjectsToClean)" Targets="Clean" Properties="$(GlobalProperties)" RunEachTargetSeparately="true" StopOnFirstFailure="true" />
     <ItemGroup>
       <OutputFolders Include="bin;obj" />
