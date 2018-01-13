@@ -16,10 +16,10 @@
 
   <ItemGroup>
     <DotNetCliToolReference Include="Microsoft.DotNet.Watcher.Tools" Version="2.0.0" />
-    <Watch Include="..\**\*.cs" />
-    <Watch Include="..\**\*.cshtml" />
-    <Watch Include="..\**\*.csproj" />
-    <Watch Include="..\**\*.targets" />
+    <Watch Include="..\**\*.cs" Exclude="..\_output\**" />
+    <Watch Include="..\**\*.cshtml" Exclude="..\_output\**" />
+    <Watch Include="..\**\*.csproj" Exclude="..\_output\**" />
+    <Watch Include="..\**\*.targets" Exclude="..\_output\**" />
   </ItemGroup>
 
   <Target Name="ExportBuild" AfterTargets="Build">

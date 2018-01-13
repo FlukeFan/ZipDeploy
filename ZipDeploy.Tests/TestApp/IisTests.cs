@@ -1,6 +1,6 @@
 ﻿using System.IO;
 using System.IO.Compression;
-using System.Net;
+using System.Net.Http;
 using FluentAssertions;
 using NUnit.Framework;
 
@@ -45,19 +45,28 @@ namespace ZipDeploy.Tests.TestApp
             var publishZip = Path.Combine(testAppfolder, "publish.zip");
             ZipFile.CreateFromDirectory(publishFolder, publishZip);
 
-            File.Move(publishZip, Path.Combine(iisFolder, "publish.zip"));
+            var pushedZip = Path.Combine(iisFolder, "publish.zip");
+            File.Move(publishZip, pushedZip);
 
-            //Get("http://localhost:8099").Should().Contain("Version=234");
-            //Get("http://localhost:8099/test.js").Should().Contain("alert(234);");
+            Wait.For(() =>
+            {
+                File.Exists(pushedZip).Should().BeFalse($"file {pushedZip} should be picked up by ZipDeploy");
+            });
+
+            Get("http://localhost:8099").Should().Contain("Version=234");
+            Get("http://localhost:8099/test.js").Should().Contain("alert(234);");
+
+            File.Exists(Path.Combine(iisFolder, "publish.zip")).Should().BeFalse("publish.zip should have been renamed to installing.zip");
+            File.Exists(Path.Combine(iisFolder, "installing.zip")).Should().BeFalse("installing.zip should have been renamed to deployed.zip");
+            File.Exists(Path.Combine(iisFolder, "deployed.zip")).Should().BeTrue("deployment should be complete, and installing.zip should have been renamed to deployed.zip");
 
             Iis.DeleteIisSite();
         }
 
         private string Get(string url)
         {
-            var request = HttpWebRequest.Create(url);
-            var response = request.GetResponse();
-            using (var stream = response.GetResponseStream())
+            var response = new HttpClient().GetAsync(url).GetAwaiter().GetResult();
+            using (var stream = response.Content.ReadAsStreamAsync().GetAwaiter().GetResult())
             using (var streamReader = new StreamReader(stream))
                 return streamReader.ReadToEnd();
         }

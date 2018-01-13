@@ -24,7 +24,7 @@ namespace ZipDeploy.TestApp
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             app.UseZipDeploy(options => options
-                .UseRestartUrl("http://localhost:8099"));
+                .UseIisUrl("http://localhost:8099"));
 
             app.UseDeveloperExceptionPage();
 
