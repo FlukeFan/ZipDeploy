@@ -6,8 +6,7 @@ namespace ZipDeploy.Tests.TestApp
     {
         public static void CopyDir(string sourceDir, string destDir)
         {
-            if (Directory.Exists(destDir))
-                Directory.Delete(destDir, true);
+            DeleteFolder(destDir);
 
             Directory.CreateDirectory(destDir);
 
