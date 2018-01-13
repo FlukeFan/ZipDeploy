@@ -35,6 +35,11 @@ namespace ZipDeploy.Tests.TestApp
             Get("http://localhost:8099").Should().Contain("Version=123");
             Get("http://localhost:8099/test.js").Should().Contain("alert(123);");
 
+            FileSystem.CopySource(slnFolder, srcCopyFolder, "ZipDeploy.TestApp");
+            FileSystem.ReplaceText(testAppfolder, @"HomeController.cs", "private const int c_version = 123;", "private const int c_version = 234;");
+            FileSystem.ReplaceText(testAppfolder, @"wwwroot\test.js", "alert(123);", "alert(234);");
+            Exec.DotnetPublish(testAppfolder);
+
             Iis.DeleteIisSite();
         }
 

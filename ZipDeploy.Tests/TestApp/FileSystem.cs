@@ -32,5 +32,13 @@ namespace ZipDeploy.Tests.TestApp
 
             FileSystem.CopyDir(src, copy);
         }
+
+        public static void ReplaceText(string folder, string file, string find, string replace)
+        {
+            var path = Path.Combine(folder, file);
+            var content = File.ReadAllText(path);
+            content = content.Replace(find, replace);
+            File.WriteAllText(path, content);
+        }
     }
 }
