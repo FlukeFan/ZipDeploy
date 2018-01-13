@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.IO.Compression;
 using System.Net;
 using FluentAssertions;
 using NUnit.Framework;
@@ -17,6 +18,7 @@ namespace ZipDeploy.Tests.TestApp
             var slnFolder = Test.GetSlnFolder();
             var srcCopyFolder = Path.Combine(outputFolder, "src");
 
+            FileSystem.DeleteFolder(srcCopyFolder);
             FileSystem.CopySource(slnFolder, srcCopyFolder, "Build");
             FileSystem.CopySource(slnFolder, srcCopyFolder, "ZipDeploy");
             FileSystem.CopySource(slnFolder, srcCopyFolder, "ZipDeploy.TestApp");
@@ -39,6 +41,14 @@ namespace ZipDeploy.Tests.TestApp
             FileSystem.ReplaceText(testAppfolder, @"HomeController.cs", "private const int c_version = 123;", "private const int c_version = 234;");
             FileSystem.ReplaceText(testAppfolder, @"wwwroot\test.js", "alert(123);", "alert(234);");
             Exec.DotnetPublish(testAppfolder);
+
+            var publishZip = Path.Combine(testAppfolder, "publish.zip");
+            ZipFile.CreateFromDirectory(publishFolder, publishZip);
+
+            File.Move(publishZip, Path.Combine(iisFolder, "publish.zip"));
+
+            //Get("http://localhost:8099").Should().Contain("Version=234");
+            //Get("http://localhost:8099/test.js").Should().Contain("alert(234);");
 
             Iis.DeleteIisSite();
         }
