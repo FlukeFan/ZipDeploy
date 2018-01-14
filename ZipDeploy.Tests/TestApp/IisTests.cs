@@ -42,16 +42,16 @@ namespace ZipDeploy.Tests.TestApp
             FileSystem.ReplaceText(testAppfolder, @"wwwroot\test.js", "alert(123);", "alert(234);");
             Exec.DotnetPublish(testAppfolder);
 
-            var publishZip = Path.Combine(testAppfolder, "publish.zip");
-            ZipFile.CreateFromDirectory(publishFolder, publishZip);
+            var uploadingZip = Path.Combine(iisFolder, "uploading.zip");
+            ZipFile.CreateFromDirectory(publishFolder, uploadingZip);
 
-            var pushedZip = Path.Combine(iisFolder, "publish.zip");
-            File.Move(publishZip, pushedZip);
+            var publishZip = Path.Combine(iisFolder, "publish.zip");
+            File.Move(uploadingZip, publishZip);
 
             Wait.For(() =>
             {
                 var log = File.ReadAllText(Path.Combine(iisFolder, "nlog.log"));
-                File.Exists(pushedZip).Should().BeFalse($"file {pushedZip} should be picked up by ZipDeploy, with log:\n\n{log}\n\n");
+                File.Exists(publishZip).Should().BeFalse($"file {publishZip} should be picked up by ZipDeploy, with log:\n\n{log}\n\n");
             });
 
             Get("http://localhost:8099").Should().Contain("Version=234");
