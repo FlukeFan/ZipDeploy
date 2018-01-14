@@ -50,7 +50,8 @@ namespace ZipDeploy.Tests.TestApp
 
             Wait.For(() =>
             {
-                File.Exists(pushedZip).Should().BeFalse($"file {pushedZip} should be picked up by ZipDeploy");
+                var log = File.ReadAllText(Path.Combine(iisFolder, "nlog.log"));
+                File.Exists(pushedZip).Should().BeFalse($"file {pushedZip} should be picked up by ZipDeploy, with log:\n\n{log}\n\n");
             });
 
             Get("http://localhost:8099").Should().Contain("Version=234");
