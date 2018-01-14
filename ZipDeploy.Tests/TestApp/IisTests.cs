@@ -54,8 +54,11 @@ namespace ZipDeploy.Tests.TestApp
                 File.Exists(publishZip).Should().BeFalse($"file {publishZip} should have been picked up by ZipDeploy, with log:\n\n{log}\n\n");
             });
 
-            Get("http://localhost:8099").Should().Contain("Version=234");
-            Get("http://localhost:8099/test.js").Should().Contain("alert(234);");
+            Wait.For(() =>
+            {
+                Get("http://localhost:8099").Should().Contain("Version=234");
+                Get("http://localhost:8099/test.js").Should().Contain("alert(234);");
+            });
 
             File.Exists(Path.Combine(iisFolder, "publish.zip")).Should().BeFalse("publish.zip should have been renamed to installing.zip");
             File.Exists(Path.Combine(iisFolder, "installing.zip")).Should().BeFalse("installing.zip should have been renamed to deployed.zip");
