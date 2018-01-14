@@ -1,4 +1,7 @@
-﻿using System.Linq;
+﻿using System.IO;
+using System.Linq;
+using System.Security.AccessControl;
+using System.Security.Principal;
 using Microsoft.Web.Administration;
 
 namespace ZipDeploy.Tests.TestApp
@@ -10,6 +13,14 @@ namespace ZipDeploy.Tests.TestApp
 
         public static void CreateIisSite(string iisFolder)
         {
+            var sec = new DirectorySecurity(iisFolder, AccessControlSections.Access);
+            var everyone = new SecurityIdentifier(WellKnownSidType.WorldSid, null);
+            var rights = FileSystemRights.FullControl;
+            var inheritFlags = InheritanceFlags.ContainerInherit | InheritanceFlags.ObjectInherit;
+            var propFlags = PropagationFlags.InheritOnly;
+            sec.AddAccessRule(new FileSystemAccessRule(everyone, rights, inheritFlags, propFlags, AccessControlType.Allow));
+            new DirectoryInfo(iisFolder).SetAccessControl(sec);
+
             using (var iisManager = new ServerManager())
             {
                 var siteCount = iisManager.Sites.Count(s => s.Name == c_iisName);
