@@ -5,7 +5,7 @@ namespace ZipDeploy.Tests.TestApp
 {
     public static class Wait
     {
-        private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(10);
+        private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(30);
         private static          TimeSpan Timeout        = DefaultTimeout;
 
         public static void For(Action action)
