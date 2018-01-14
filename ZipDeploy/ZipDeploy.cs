@@ -38,21 +38,22 @@ namespace ZipDeploy
             if (!_installerDetected)
                 return;
 
-            var callIis = false;
-
-            lock (_installLock)
+            _log.LogAndSwallowException("ZipDeploy.Invoke - installerDetected", () =>
             {
-                if (HasPublish())
+                var callIis = false;
+
+                lock (_installLock)
                 {
-                    callIis = true;
-                    InstallBinaries();
+                    if (HasPublish())
+                    {
+                        callIis = true;
+                        InstallBinaries();
+                    }
                 }
-            }
 
-            if (callIis)
-                CallIis().GetAwaiter().GetResult();
-
-            return;
+                if (callIis)
+                    CallIis().GetAwaiter().GetResult();
+            });
         }
 
         private void InstallBinaries()
@@ -203,14 +204,7 @@ namespace ZipDeploy
 
         private void ZipFileChange(object sender, FileSystemEventArgs e)
         {
-            try
-            {
-                DetectInstaller();
-            }
-            catch (Exception ex)
-            {
-                _log.LogError(ex, "Exception during ZipFileChange()");
-            }
+            _log.LogAndSwallowException("ZipFileChange", DetectInstaller);
         }
         
         private void DetectInstaller()

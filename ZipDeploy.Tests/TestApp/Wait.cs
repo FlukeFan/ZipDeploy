@@ -32,7 +32,6 @@ namespace ZipDeploy.Tests.TestApp
 
         private static T WaitUntil<T>(DateTime until, Func<T> query)
         {
-            var startWait = DateTime.Now;
             while (true)
             {
                 try
@@ -42,10 +41,7 @@ namespace ZipDeploy.Tests.TestApp
                 catch
                 {
                     if (DateTime.Now > until)
-                    {
-                        Test.WriteProgress($"Waited from {startWait} until {DateTime.Now} was past {until}");
                         throw;
-                    }
 
                     Thread.Sleep(20);
                 }
