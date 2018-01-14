@@ -62,14 +62,19 @@ namespace ZipDeploy
 
             var config = (string)null;
 
+            _log.LogDebug("Opening publish.zip");
             using (var zipFile = ZipFile.OpenRead("publish.zip"))
             {
                 var entries = zipFile.Entries
                     .ToDictionary(zfe => zfe.FullName, zfe => zfe);
 
+                _log.LogDebug($"{entries.Count} entries in zip");
+
                 var dlls = entries.Keys
                     .Where(k => Path.GetExtension(k)?.ToLower() == ".dll")
                     .ToList();
+
+                _log.LogDebug($"{dlls.Count} dlls in zip");
 
                 var dllsWithoutExtension = dlls.Select(dll => Path.GetFileNameWithoutExtension(dll)).ToList();
 
@@ -85,8 +90,12 @@ namespace ZipDeploy
                         var destinationFile = $"{fullName}.fordelete.txt";
 
                         if (File.Exists(destinationFile))
+                        {
+                            _log.LogDebug($"deleting existing {destinationFile}");
                             File.Delete(destinationFile);
+                        }
 
+                        _log.LogDebug($"renaming {fullName} to {destinationFile}");
                         File.Move(fullName, destinationFile);
                     }
 
@@ -94,7 +103,10 @@ namespace ZipDeploy
 
                     using (var streamWriter = File.Create(fullName))
                     using (var zipInput = zipEntry.Open())
+                    {
+                        _log.LogDebug($"extracting {fullName}");
                         zipInput.CopyTo(streamWriter);
+                    }
                 }
 
                 if (entries.ContainsKey("web.config"))
@@ -106,8 +118,12 @@ namespace ZipDeploy
             }
 
             if (File.Exists("installing.zip"))
+            {
+                _log.LogDebug($"deleting existing installing.zip");
                 File.Delete("installing.zip");
+            }
 
+            _log.LogDebug($"renaming publish.zip to installing.zip");
             File.Move("publish.zip", "installing.zip");
 
             _log.LogDebug("Binaries extracted, triggering restart by 'touching' web.config");
