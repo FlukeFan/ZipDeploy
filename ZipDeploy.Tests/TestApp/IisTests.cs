@@ -51,7 +51,8 @@ namespace ZipDeploy.Tests.TestApp
             Wait.For(() =>
             {
                 var log = File.ReadAllText(Path.Combine(iisFolder, "nlog.log"));
-                File.Exists(publishZip).Should().BeFalse($"file {publishZip} should be picked up by ZipDeploy, with log:\n\n{log}\n\n");
+                var deployedZip = Path.Combine(iisFolder, "deployed.zip");
+                File.Exists(deployedZip).Should().BeTrue($"file {publishZip} should have been renamed to {deployedZip} by ZipDeploy, with log:\n\n{log}\n\n");
             });
 
             Get("http://localhost:8099").Should().Contain("Version=234");
