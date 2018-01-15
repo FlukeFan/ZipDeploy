@@ -130,6 +130,17 @@ namespace ZipDeploy
 
             config = config ?? File.ReadAllText("web.config");
             File.WriteAllText("web.config", config);
+
+            new Thread(() => ReUpdateWebConfig(config)).Start();
+        }
+
+        private void ReUpdateWebConfig(string config)
+        {
+            Thread.Sleep(1000);
+
+            _log.LogDebug("process still running; re-touching web.config");
+            File.WriteAllText("web.config", config);
+            new Thread(() => ReUpdateWebConfig(config)).Start();
         }
 
         private void CompleteInstallation()

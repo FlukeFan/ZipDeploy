@@ -9,10 +9,6 @@
 </p>
 
 <ul>
-    <li><a href="Quickstart.html">Quickstart</a></li>
-    <li><a href="Walkthrough.html">Walkthrough</a></li>
+    <li><a href="quickstart.html">Quickstart</a></li>
+    <li><a href="walkthrough.html">Walkthrough</a></li>
 </ul>
-
-* [Quickstart]
-* <Walkthrough>
-
