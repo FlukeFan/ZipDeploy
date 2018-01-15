@@ -9,6 +9,8 @@ Open Startup.cs, and add:
 
     using ZipDeploy;
 
+    ...
+
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             app.UseZipDeploy(options => options

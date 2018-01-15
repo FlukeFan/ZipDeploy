@@ -40,19 +40,11 @@ namespace ZipDeploy
 
             _log.LogAndSwallowException("ZipDeploy.Invoke - installerDetected", () =>
             {
-                var callIis = false;
-
                 lock (_installLock)
                 {
                     if (HasPublish())
-                    {
-                        callIis = true;
                         InstallBinaries();
-                    }
                 }
-
-                if (callIis)
-                    CallIis().GetAwaiter().GetResult();
             });
         }
 
@@ -127,20 +119,27 @@ namespace ZipDeploy
             File.Move("publish.zip", "installing.zip");
 
             _log.LogDebug("Binaries extracted, triggering restart by 'touching' web.config");
-
+            
             config = config ?? File.ReadAllText("web.config");
-            File.WriteAllText("web.config", config);
-
-            new Thread(() => ReUpdateWebConfig(config)).Start();
+            new Thread(() => UpdateWebConfig(config)).Start();
+            Thread.Sleep(0);
         }
 
-        private void ReUpdateWebConfig(string config)
+        private void UpdateWebConfig(string config)
         {
-            Thread.Sleep(1000);
+            Handler.LogAndSwallowException(_log, "UpdateWebConfig", () =>
+            {
+                File.WriteAllText("web.config", config);
+                CallIis().GetAwaiter().GetResult();
 
-            _log.LogDebug("process still running; re-touching web.config");
-            File.WriteAllText("web.config", config);
-            new Thread(() => ReUpdateWebConfig(config)).Start();
+                Thread.Sleep(1000);
+
+                if (!File.Exists("installing.zip"))
+                    return;
+
+                _log.LogDebug("process still running; re-touching web.config");
+                new Thread(() => UpdateWebConfig(config)).Start();
+            });
         }
 
         private void CompleteInstallation()
