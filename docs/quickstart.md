@@ -7,10 +7,12 @@ Execute the following:
 
 Open Startup.cs, and add:
 
-    public void Configure(IApplicationBuilder app, IHostingEnvironment env)
-    {
-        app.UseZipDeploy();
-            .UseIisUrl("http://url.to.open.app/through/iis"));
+    using ZipDeploy;
+
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        {
+            app.UseZipDeploy(options => options
+                .UseIisUrl("http://url.to.open.app/through/iis"));
 
 Now you can do:
 
