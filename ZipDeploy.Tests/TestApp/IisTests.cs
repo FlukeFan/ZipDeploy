@@ -56,8 +56,9 @@ namespace ZipDeploy.Tests.TestApp
 
             Wait.For(() =>
             {
-                Get("http://localhost:8099").Should().Contain("Version=234");
-                Get("http://localhost:8099/test.js").Should().Contain("alert(234);");
+                var log = File.ReadAllText(Path.Combine(iisFolder, "nlog.log"));
+                Get("http://localhost:8099").Should().Contain("Version=234", $"log:\n\n{log}\n\n");
+                Get("http://localhost:8099/test.js").Should().Contain("alert(234);", $"log:\n\n{log}\n\n");
             });
 
             File.Exists(Path.Combine(iisFolder, "publish.zip")).Should().BeFalse("publish.zip should have been renamed to installing.zip");
