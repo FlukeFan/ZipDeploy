@@ -5,7 +5,7 @@ Execute the following:
     dotnet new mvc
     dotnet add package ZipDeploy
 
-Open Startup.cs, and add:
+Open `Startup.cs`, and add:
 
     using ZipDeploy;
 
@@ -20,6 +20,6 @@ Now you can do:
 
     dotnet publish
 
-... zip up the generated publish folder, and FTP it up to the root of your running site.
+... zip up the generated `publish` folder, and FTP it up to the root of your running site.
 
-A more detailed walkthrough is detailed here:  <a href="walkthrough.html">Walkthrough</a>
+A more detailed walkthrough is covered here:  <a href="walkthrough.html">Walkthrough</a>

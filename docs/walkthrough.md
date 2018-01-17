@@ -1,0 +1,47 @@
+<h1>Walkthrough</h1>
+
+This walkthrough will talk you through getting an example of ZipDeploy up and running on your machine using IIS, 7za.exe, and FTP.
+
+For this walkthrough, you will need:
+* IIS
+* FTP Server
+* .NET Core Windows Server Hosting bundle
+* `7za.exe`
+* `ncftpput.exe`
+
+IIS and FTP server can be enabled "Turn Windows features on or off".
+".NET Core Windows Server Hosting bundle" needs to be downloaded and installed to add the AspNetCoreModule to IIS.
+`7za.exe` and `ncftpput.exe` are freely available downloads; the walkthrough assumed you have them in your PATH.
+
+Checkout your ASP.NET Core MVC application to `C:\Temp\MyApp`, and add the zipDeploy package:
+
+    CD C:\Temp\MyApp
+    dotnet add package ZipDeploy
+
+Open `Startup.cs`, and add:
+
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        {
+            app.UseZipDeploy(options => options
+                .UseIisUrl("http://localhost:8123"));
+
+Package the application:
+
+    dotnet publish
+    move bin\Debug\netcoreapp2.0\publish ..\MySite
+
+Modify the security of the `C:\Temp\MySite` folder to add Everyone with Full Control (purely for demo purposes).
+
+In IIS Manager, add a website with 'Site name' MySite, 'Physical Path' `C:\Temp\MySite`, and 'port' 8123.  Browser to the URL `http://localhost:8123/` to confirm your site is up and running.
+
+In IIS Manager, add an FTP site with 'FTP site name' MyFtpSite, and 'Physical path' `C:\Temp\MySite`, and select no SSL and enable anoymous authentication.  In the FTP site Authorization Rules, allow Anonymous Users read and write permissions.  Verify the FTP site is working using `ftp localhost` from a command prompt, logging in with username `anonymous` and a blank password, and typing `ls` to see the list of files in the website.
+
+Make a change to you code that you wish to see reflected after deployment, and package the application again:
+
+    CD C:\Temp\MyApp
+    dotnet publish
+
+Re-verify your site is running in the browser (and verify your changes are not present yet).  Now zip the contents of the pubish directory, and FTP the resulting zip into the root of the site.
+
+    7za.exe a publish.zip .\bin\Debug\netcoreapp2.0\publish\*
+    ncftpput.exe -S .tmp localhost . publish.zip
