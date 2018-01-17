@@ -118,32 +118,14 @@ namespace ZipDeploy
             _log.LogDebug($"renaming publish.zip to installing.zip");
             File.Move("publish.zip", "installing.zip");
 
-            _log.LogDebug("Binaries extracted, triggering restart by 'touching' web.config");
-            
+            _log.LogDebug("Triggering restart by touching web.config");
             config = config ?? File.ReadAllText("web.config");
-            new Thread(() => UpdateWebConfig(config)).Start();
-            Thread.Sleep(0);
-        }
-
-        private void UpdateWebConfig(string config)
-        {
-            Handler.LogAndSwallowException(_log, "UpdateWebConfig", () =>
-            {
-                File.WriteAllText("web.config", config);
-                CallIis().GetAwaiter().GetResult();
-
-                Thread.Sleep(1000);
-
-                if (!File.Exists("installing.zip"))
-                    return;
-
-                _log.LogDebug("process still running; re-touching web.config");
-                new Thread(() => UpdateWebConfig(config)).Start();
-            });
+            File.SetLastWriteTimeUtc("web.config", File.GetLastWriteTimeUtc("web.config") + TimeSpan.FromSeconds(1));
         }
 
         private void CompleteInstallation()
         {
+            _log.LogDebug("detected intalling.zip; completing installation");
             if (File.Exists("installing.zip"))
             {
                 using (var zipFile = ZipFile.OpenRead("installing.zip"))
@@ -247,9 +229,11 @@ namespace ZipDeploy
                 {
                     _log.LogDebug("Detected installer");
                     _installerDetected = true;
-                    CallIis().GetAwaiter().GetResult();
                 }
             }
+
+            if (_installerDetected)
+                CallIis().GetAwaiter().GetResult();
         }
 
         private bool HasPublish()

@@ -54,12 +54,11 @@ namespace ZipDeploy.Tests.TestApp
                 File.Exists(publishZip).Should().BeFalse($"file {publishZip} should have been picked up by ZipDeploy, with log:\n\n{log}\n\n");
             });
 
-            Wait.For(() =>
-            {
-                var log = File.ReadAllText(Path.Combine(iisFolder, "nlog.log"));
-                Get("http://localhost:8099").Should().Contain("Version=234", $"log:\n\n{log}\n\n");
-                Get("http://localhost:8099/test.js").Should().Contain("alert(234);", $"log:\n\n{log}\n\n");
-            });
+            // the binaries have been replaced, and the web.config should have been touched
+            // the next request should complete the installation, and return the new responses
+
+            Get("http://localhost:8099").Should().Contain("Version=234");
+            Get("http://localhost:8099/test.js").Should().Contain("alert(234);");
 
             File.Exists(Path.Combine(iisFolder, "publish.zip")).Should().BeFalse("publish.zip should have been renamed to installing.zip");
             File.Exists(Path.Combine(iisFolder, "installing.zip")).Should().BeFalse("installing.zip should have been renamed to deployed.zip");
