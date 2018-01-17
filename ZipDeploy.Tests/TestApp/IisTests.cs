@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
 using FluentAssertions;
@@ -57,8 +58,16 @@ namespace ZipDeploy.Tests.TestApp
             // the binaries have been replaced, and the web.config should have been touched
             // the next request should complete the installation, and return the new responses
 
-            Get("http://localhost:8099").Should().Contain("Version=234");
-            Get("http://localhost:8099/test.js").Should().Contain("alert(234);");
+            try
+            {
+                Get("http://localhost:8099").Should().Contain("Version=234");
+                Get("http://localhost:8099/test.js").Should().Contain("alert(234);");
+            }
+            catch (Exception e)
+            {
+                var log = File.ReadAllText(Path.Combine(iisFolder, "nlog.log"));
+                throw new Exception($"assertion failure with log:\n\n{log}\n\n", e);
+            }
 
             File.Exists(Path.Combine(iisFolder, "publish.zip")).Should().BeFalse("publish.zip should have been renamed to installing.zip");
             File.Exists(Path.Combine(iisFolder, "installing.zip")).Should().BeFalse("installing.zip should have been renamed to deployed.zip");
