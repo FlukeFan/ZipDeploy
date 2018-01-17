@@ -11,9 +11,9 @@ For this walkthrough, you will need:
 
 IIS and FTP server can be enabled "Turn Windows features on or off".
 ".NET Core Windows Server Hosting bundle" needs to be downloaded and installed to add the AspNetCoreModule to IIS.
-`7za.exe` and `ncftpput.exe` are freely available downloads; the walkthrough assumed you have them in your PATH.
+`7za.exe` and `ncftpput.exe` are freely available downloads; the walkthrough assumes you have them in your PATH.
 
-Checkout your ASP.NET Core MVC application to `C:\Temp\MyApp`, and add the zipDeploy package:
+Checkout your ASP.NET Core MVC application to `C:\Temp\MyApp`, and add the ZipDeploy package:
 
     CD C:\Temp\MyApp
     dotnet add package ZipDeploy
@@ -32,11 +32,11 @@ Package the application:
 
 Modify the security of the `C:\Temp\MySite` folder to add Everyone with Full Control (purely for demo purposes).
 
-In IIS Manager, add a website with 'Site name' MySite, 'Physical Path' `C:\Temp\MySite`, and 'port' 8123.  Browser to the URL `http://localhost:8123/` to confirm your site is up and running.
+In IIS Manager, add a website with 'Site name' MySite, 'Physical Path' `C:\Temp\MySite`, and 'port' 8123.  Browse to the URL `http://localhost:8123/` to confirm your site is up and running.
 
-In IIS Manager, add an FTP site with 'FTP site name' MyFtpSite, and 'Physical path' `C:\Temp\MySite`, and select no SSL and enable anoymous authentication.  In the FTP site Authorization Rules, allow Anonymous Users read and write permissions.  Verify the FTP site is working using `ftp localhost` from a command prompt, logging in with username `anonymous` and a blank password, and typing `ls` to see the list of files in the website.
+In IIS Manager, add an FTP site with 'FTP site name' MyFtpSite and 'Physical path' `C:\Temp\MySite`, select no SSL, and enable anoymous authentication.  In the FTP site Authorization Rules, allow Anonymous Users read and write permissions.  Verify the FTP site is working using `ftp localhost` from a command prompt, logging in with username `anonymous` and a blank password, and typing `ls` to see the list of files in the website.
 
-Make a change to you code that you wish to see reflected after deployment, and package the application again:
+Make a change to your code that you wish to see reflected after deployment, and package the application again:
 
     CD C:\Temp\MyApp
     dotnet publish
