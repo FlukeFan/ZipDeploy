@@ -63,8 +63,7 @@ namespace ZipDeploy.Tests.TestApp
 
             Iis.ShowLogOnFail(iisFolder, () =>
             {
-                while (Get("http://localhost:8099").Contains("123"))
-                { }
+                Wait.Until("site should not return old value", () => !Get("http://localhost:8099").Contains("123"));
 
                 Get("http://localhost:8099").Should().Contain("Version=234");
                 Get("http://localhost:8099/test.js").Should().Contain("alert(234);");
