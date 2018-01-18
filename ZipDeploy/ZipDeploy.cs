@@ -12,8 +12,16 @@ namespace ZipDeploy
 {
     public class ZipDeploy
     {
-        private object              _installLock        = new object();
-        private bool                _installerDetected;
+        private enum State
+        {
+            Idle,
+            FoundZip,
+            UnzippingBinaries,
+            AwaitingRestart,
+        }
+
+        private object              _stateLock      = new object();
+        private State               _installState;
         private ILogger<ZipDeploy>  _log;
         private RequestDelegate     _next;
         private string              _iisUrl;
@@ -27,6 +35,9 @@ namespace ZipDeploy
             _log.LogInformation($"ZipDeploy started [IisUrl={_iisUrl}]");
 
             CompleteInstallation();
+
+            _installState = State.Idle;
+
             StartWatchingForInstaller();
             DetectInstaller();
         }
@@ -35,15 +46,34 @@ namespace ZipDeploy
         {
             await _next(context);
 
-            if (!_installerDetected)
+            if (_installState != State.FoundZip)
                 return;
 
             _log.LogAndSwallowException("ZipDeploy.Invoke - installerDetected", () =>
             {
-                lock (_installLock)
+                try
                 {
-                    if (HasPublish())
-                        InstallBinaries();
+                    lock(_stateLock)
+                    {
+                        if (_installState != State.FoundZip)
+                            return;
+
+                        _installState = State.UnzippingBinaries;
+                    }
+
+                    InstallBinaries();
+
+                    lock(_stateLock)
+                    {
+                        _installState = State.AwaitingRestart;
+                    }
+                }
+                catch
+                {
+                    // replace the state so we can try again
+                    _installState = State.FoundZip;
+                    StartWebRequest();
+                    throw;
                 }
             });
         }
@@ -179,7 +209,7 @@ namespace ZipDeploy
                 File.Move("installing.zip", "deployed.zip");
             }
 
-            Task.Factory.StartNew(DeleteForDeleteFiles);
+            Task.Run(() => DeleteForDeleteFiles());
         }
 
         private void DeleteForDeleteFiles()
@@ -192,12 +222,15 @@ namespace ZipDeploy
                     {
                         File.Delete(forDelete);
                     }
-                    catch
+                    catch (Exception e)
                     {
+                        _log.LogDebug(e, $"Error deleting {forDelete}");
                         Thread.Sleep(0);
                     }
                 }
             }
+
+            _log.LogDebug("Completed deletion of *.fordelete.txt files");
         }
 
         private void StartWatchingForInstaller()
@@ -214,40 +247,45 @@ namespace ZipDeploy
         {
             _log.LogAndSwallowException("ZipFileChange", DetectInstaller);
         }
-        
+
         private void DetectInstaller()
         {
-            if (_installerDetected)
+            if (_installState != State.Idle)
                 return;
 
-            lock (_installLock)
+            lock (_stateLock)
             {
-                if (_installerDetected)
+                if (_installState != State.Idle)
                     return;
 
-                if (HasPublish())
+                if (NewZipFileExists())
                 {
                     _log.LogDebug("Detected installer");
-                    _installerDetected = true;
+                    _installState = State.FoundZip;
                 }
             }
 
-            if (_installerDetected)
-                CallIis().GetAwaiter().GetResult();
+            if (_installState == State.FoundZip)
+                StartWebRequest();
         }
 
-        private bool HasPublish()
+        private bool NewZipFileExists()
         {
             return File.Exists("publish.zip");
         }
 
-        private Task<HttpResponseMessage> CallIis()
+        private void StartWebRequest()
         {
             if (string.IsNullOrWhiteSpace(_iisUrl))
-                return Task.FromResult<HttpResponseMessage>(null);
+                return;
 
-            _log.LogDebug($"Making request to IIS: {_iisUrl}");
-            return new HttpClient().GetAsync(_iisUrl);
+            Task.Run(() => Handler.LogAndSwallowException(_log, "CallIis", () =>
+            {
+                _log.LogDebug($"Making request to IIS: {_iisUrl}");
+                using (var client = new HttpClient())
+                using (client.GetAsync(_iisUrl).GetAwaiter().GetResult())
+                { }
+            }));
         }
     }
 }
