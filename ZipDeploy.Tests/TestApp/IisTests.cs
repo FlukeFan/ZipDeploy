@@ -45,6 +45,9 @@ namespace ZipDeploy.Tests.TestApp
             var uploadingZip = Path.Combine(iisFolder, "uploading.zip");
             ZipFile.CreateFromDirectory(publishFolder, uploadingZip);
 
+            var configFile = Path.Combine(iisFolder, "web.config");
+            var lastConfigChange = File.GetLastWriteTimeUtc(configFile);
+
             var publishZip = Path.Combine(iisFolder, "publish.zip");
             File.Move(uploadingZip, publishZip);
 
@@ -52,6 +55,7 @@ namespace ZipDeploy.Tests.TestApp
                 Wait.For(() =>
                 {
                     File.Exists(publishZip).Should().BeFalse($"file {publishZip} should have been picked up by ZipDeploy");
+                    File.GetLastWriteTimeUtc(configFile).Should().NotBe(lastConfigChange, $"file {configFile} should have been updated");
                 }));
 
             // the binaries have been replaced, and the web.config should have been touched
