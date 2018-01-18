@@ -45,3 +45,15 @@ Re-verify your site is running in the browser (and verify your changes are not p
 
     7za.exe a publish.zip .\bin\Debug\netcoreapp2.0\publish\*
     ncftpput.exe -S .tmp localhost . publish.zip
+
+Note two things:
+* The zip file should be rooted at the same point as the site (note the relative folder and trailing backslash to `7za.exe`).  For example, the `web.config` should be directly inside the zip file, not inside a folder inside the zip file;
+* The upload should use a temporary filename until the upload is complete.  The option `-S .tmp` means the file is uploaded as `publish.zip.tmp`, then renamed to `publish.zip` once the upload is complete.
+
+ZipDeploy should detect the presence of the zip file.  It will rename the current binaries (which is allowed even when they are in use), then unzip the new ones.
+
+ZipDeploy then updates the web.config, which makes IIS recycle the ASP.NET Core process.
+
+The next request to IIS will start the new ASP.NET Core process, at which point ZipDeploy will delete the renamed binaries, and unzip any remaining content.
+
+Refresh the browser to verify the changes have been reflected, and notice that ZipDeploy has renamed the zip file to `deployed.zip`.
