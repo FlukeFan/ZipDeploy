@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using System.Security.AccessControl;
 using System.Security.Principal;
@@ -10,6 +11,19 @@ namespace ZipDeploy.Tests.TestApp
     {
         private const string    c_iisName = "ZipDeployTestApp";
         private const int       c_iisPort = 8099;
+
+        public static void ShowLogOnFail(string iisFolder, Action action)
+        {
+            try
+            {
+                action();
+            }
+            catch (Exception e)
+            {
+                var log = File.ReadAllText(Path.Combine(iisFolder, "nlog.log"));
+                throw new Exception($"assertion failure with log:\n\n{log}\n\n", e);
+            }
+        }
 
         public static void CreateIisSite(string iisFolder)
         {
