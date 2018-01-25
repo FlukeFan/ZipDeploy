@@ -50,7 +50,7 @@
 
   <Target Name="RunTestsWithCoverage">
     <PropertyGroup>
-      <TestStartTime>$([System.DateTime]::Now.ToString(yyyy-MM-dd HH:mm:ss))</TestStartTime>
+      <TestStartTime>$([System.DateTime]::Now.AddSeconds(1).ToString(yyyy-MM-dd HH:mm:ss))</TestStartTime>
     </PropertyGroup>
     <Message Text="TestStartTime=$(TestStartTime)" />
     <Error Text="Coverage will only work from a Windows client.  Current OS: $(OS)" Condition="'$(OS)'!='Windows_NT'" />
