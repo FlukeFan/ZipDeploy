@@ -14,7 +14,7 @@ namespace ZipDeploy.Tests
         {
             var slnPath = Path.GetFullPath(".");
 
-            while (slnPath.Contains("ZipDeploy.Tests"))
+            while (!File.Exists(Path.Combine(slnPath, "ZipDeploy.sln")))
                 slnPath = Directory.GetParent(slnPath).FullName;
 
             return slnPath;
