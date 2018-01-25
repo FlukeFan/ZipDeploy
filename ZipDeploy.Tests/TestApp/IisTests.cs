@@ -15,7 +15,11 @@ namespace ZipDeploy.Tests.TestApp
             Iis.DeleteIisSite();
 
             var outputFolder = Test.GetOutputFolder();
+            Test.WriteProgress($"outputFolder={outputFolder}");
+
             var slnFolder = Test.GetSlnFolder();
+            Test.WriteProgress($"slnFolder={slnFolder}");
+
             var srcCopyFolder = Path.Combine(outputFolder, "src");
 
             FileSystem.DeleteFolder(srcCopyFolder);
