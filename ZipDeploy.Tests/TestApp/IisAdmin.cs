@@ -7,7 +7,7 @@ using Microsoft.Web.Administration;
 
 namespace ZipDeploy.Tests.TestApp
 {
-    public static class Iis
+    public static class IisAdmin
     {
         private const string    c_iisName = "ZipDeployTestApp";
         private const int       c_iisPort = 8099;

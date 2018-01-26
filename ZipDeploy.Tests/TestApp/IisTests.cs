@@ -12,7 +12,7 @@ namespace ZipDeploy.Tests.TestApp
         [Test]
         public void DeployZip()
         {
-            Iis.DeleteIisSite();
+            IisAdmin.DeleteIisSite();
 
             var outputFolder = Test.GetOutputFolder();
             Test.WriteProgress($"outputFolder={outputFolder}");
@@ -36,7 +36,7 @@ namespace ZipDeploy.Tests.TestApp
             FileSystem.DeleteFolder(iisFolder);
             Directory.Move(publishFolder, iisFolder);
 
-            Iis.CreateIisSite(iisFolder);
+            IisAdmin.CreateIisSite(iisFolder);
 
             Get("http://localhost:8099").Should().Contain("Version=123");
             Get("http://localhost:8099/test.js").Should().Contain("alert(123);");
@@ -55,7 +55,7 @@ namespace ZipDeploy.Tests.TestApp
             var publishZip = Path.Combine(iisFolder, "publish.zip");
             File.Move(uploadingZip, publishZip);
 
-            Iis.ShowLogOnFail(iisFolder, () =>
+            IisAdmin.ShowLogOnFail(iisFolder, () =>
                 Wait.For(() =>
                 {
                     File.Exists(publishZip).Should().BeFalse($"file {publishZip} should have been picked up by ZipDeploy");
@@ -65,7 +65,7 @@ namespace ZipDeploy.Tests.TestApp
             // the binaries have been replaced, and the web.config should have been touched
             // the next request should complete the installation, and return the new responses
 
-            Iis.ShowLogOnFail(iisFolder, () =>
+            IisAdmin.ShowLogOnFail(iisFolder, () =>
             {
                 Wait.Until("site should not return old value", () => !Get("http://localhost:8099").Contains("123"));
 
@@ -77,7 +77,7 @@ namespace ZipDeploy.Tests.TestApp
             File.Exists(Path.Combine(iisFolder, "installing.zip")).Should().BeFalse("installing.zip should have been renamed to deployed.zip");
             File.Exists(Path.Combine(iisFolder, "deployed.zip")).Should().BeTrue("deployment should be complete, and installing.zip should have been renamed to deployed.zip");
 
-            Iis.DeleteIisSite();
+            IisAdmin.DeleteIisSite();
         }
 
         private string Get(string url)
