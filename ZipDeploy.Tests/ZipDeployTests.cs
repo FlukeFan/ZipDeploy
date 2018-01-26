@@ -33,9 +33,9 @@ namespace ZipDeploy.Tests
         {
             ExistingFiles("test.dll");
 
-            var zipDeploy = NewZipDeploy();
-
             UploadPublishZip("test.dll");
+
+            var zipDeploy = NewZipDeploy();
 
             MakeRequest(zipDeploy);
 
