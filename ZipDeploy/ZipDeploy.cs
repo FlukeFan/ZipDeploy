@@ -221,6 +221,8 @@ namespace ZipDeploy
         {
             foreach (var forDelete in Directory.GetFiles(".", "*.fordelete.txt", SearchOption.AllDirectories))
             {
+                var count = 3;
+
                 while (File.Exists(forDelete))
                 {
                     try
@@ -231,6 +233,9 @@ namespace ZipDeploy
                     {
                         _log.LogDebug(e, $"Error deleting {forDelete}");
                         Thread.Sleep(0);
+
+                        if (count-- <= 0)
+                            throw;
                     }
                 }
             }
