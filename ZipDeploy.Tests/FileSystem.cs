@@ -1,6 +1,6 @@
 ﻿using System.IO;
 
-namespace ZipDeploy.Tests.TestApp
+namespace ZipDeploy.Tests
 {
     public static class FileSystem
     {
