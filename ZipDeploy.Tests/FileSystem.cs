@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading;
 
 namespace ZipDeploy.Tests
 {
@@ -19,9 +20,17 @@ namespace ZipDeploy.Tests
 
         public static void DeleteFolder(string folder)
         {
+            var count = 3;
+
             while (Directory.Exists(folder))
                 try { Directory.Delete(folder, true); }
-                catch { }
+                catch
+                {
+                    Thread.Sleep(0);
+
+                    if (count-- == 0)
+                        throw;
+                }
         }
 
         public static void CopySource(string slnFolder, string srcCopyFolder, string projectName)
@@ -29,7 +38,7 @@ namespace ZipDeploy.Tests
             var src = Path.Combine(slnFolder, projectName);
             var copy = Path.Combine(srcCopyFolder, projectName);
 
-            FileSystem.CopyDir(src, copy);
+            CopyDir(src, copy);
         }
 
         public static void ReplaceText(string folder, string file, string find, string replace)

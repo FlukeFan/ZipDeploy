@@ -10,7 +10,7 @@ using Microsoft.Extensions.Logging;
 
 namespace ZipDeploy
 {
-    public class ZipDeploy
+    public class ZipDeploy : IDisposable
     {
         private enum State
         {
@@ -22,6 +22,7 @@ namespace ZipDeploy
 
         private object              _stateLock      = new object();
         private State               _installState;
+        private FileSystemWatcher   _fsw;
         private ILogger<ZipDeploy>  _log;
         private RequestDelegate     _next;
         private string              _iisUrl;
@@ -148,9 +149,13 @@ namespace ZipDeploy
             _log.LogDebug($"renaming publish.zip to installing.zip");
             File.Move("publish.zip", "installing.zip");
 
-            _log.LogDebug("Triggering restart by touching web.config");
-            config = config ?? File.ReadAllText("web.config");
-            File.SetLastWriteTimeUtc("web.config", File.GetLastWriteTimeUtc("web.config") + TimeSpan.FromSeconds(1));
+            if (!string.IsNullOrEmpty(config) || File.Exists("web.config"))
+            {
+                _log.LogDebug("Triggering restart by touching web.config");
+                config = config ?? File.ReadAllText("web.config");
+                File.WriteAllText("web.config", config);
+                File.SetLastWriteTimeUtc("web.config", File.GetLastWriteTimeUtc("web.config") + TimeSpan.FromSeconds(1));
+            }
         }
 
         private void CompleteInstallation()
@@ -209,7 +214,7 @@ namespace ZipDeploy
                 File.Move("installing.zip", "deployed.zip");
             }
 
-            Task.Run(() => DeleteForDeleteFiles());
+            DeleteForDeleteFiles();
         }
 
         private void DeleteForDeleteFiles()
@@ -235,11 +240,11 @@ namespace ZipDeploy
 
         private void StartWatchingForInstaller()
         {
-            var fsw = new FileSystemWatcher(Environment.CurrentDirectory, "publish.zip");
-            fsw.Created += ZipFileChange;
-            fsw.Changed += ZipFileChange;
-            fsw.Renamed += ZipFileChange;
-            fsw.EnableRaisingEvents = true;
+            _fsw = new FileSystemWatcher(Environment.CurrentDirectory, "publish.zip");
+            _fsw.Created += ZipFileChange;
+            _fsw.Changed += ZipFileChange;
+            _fsw.Renamed += ZipFileChange;
+            _fsw.EnableRaisingEvents = true;
             _log.LogInformation($"Watching for publish.zip in {Environment.CurrentDirectory}");
         }
 
@@ -286,6 +291,12 @@ namespace ZipDeploy
                 using (client.GetAsync(_iisUrl).GetAwaiter().GetResult())
                 { }
             }));
+        }
+
+        public void Dispose()
+        {
+            using (_fsw)
+                _fsw.EnableRaisingEvents = false;
         }
     }
 }

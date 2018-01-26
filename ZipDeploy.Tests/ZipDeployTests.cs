@@ -17,7 +17,9 @@ namespace ZipDeploy.Tests
     [TestFixture]
     public class ZipDeployTests
     {
-        private string _filesFolder;
+        private string              _originalCurrentDirectory;
+        private string              _filesFolder;
+        private IList<ZipDeploy>    _zdInstances;
 
         [SetUp]
         public void SetUp()
@@ -25,22 +27,46 @@ namespace ZipDeploy.Tests
             _filesFolder = Path.Combine(Test.GetOutputFolder(), "testFiles");
             FileSystem.DeleteFolder(_filesFolder);
             Directory.CreateDirectory(_filesFolder);
+            _originalCurrentDirectory = Environment.CurrentDirectory;
             Environment.CurrentDirectory = _filesFolder;
+
+            _zdInstances = new List<ZipDeploy>();
+        }
+
+        [TearDown]
+        public void TearDown()
+        {
+            Environment.CurrentDirectory = _originalCurrentDirectory;
+
+            foreach (var zdInstance in _zdInstances)
+                using (zdInstance) { }
         }
 
         [Test]
         public void BinariesAreRenamed()
         {
-            ExistingFiles("test.dll");
+            ExistingFiles("binary.dll");
 
-            UploadPublishZip("test.dll");
+            UploadPublishZip("binary.dll");
 
             var zipDeploy = NewZipDeploy();
 
             MakeRequest(zipDeploy);
 
-            File.ReadAllText("test.dll").Should().Be("zipped content of test.dll");
-            File.ReadAllText("test.dll.fordelete.txt").Should().Be("existing content of test.dll");
+            File.ReadAllText("binary.dll").Should().Be("zipped content of binary.dll");
+            File.ReadAllText("binary.dll.fordelete.txt").Should().Be("existing content of binary.dll");
+        }
+
+        [Test]
+        public void ObsoleteFilesAreRemoved()
+        {
+            ExistingFiles("new.dll", "obsolete.dll.fordelete.txt");
+
+            InstallingZip("new.dll");
+
+            var zipDeploy = NewZipDeploy();
+
+            File.Exists("obsolete.dll.fordelete.txt").Should().BeFalse("ZipDeploy should have deleted obsolete.dll.fordelete.txt");
         }
 
         private void ExistingFiles(params string[] files)
@@ -55,6 +81,7 @@ namespace ZipDeploy.Tests
             var options = new ZipDeployOptions();
             configureOptions?.Invoke(options);
             var zipDeploy = new ZipDeploy(next, new FakeLogger(), options);
+            _zdInstances.Add(zipDeploy);
             return zipDeploy;
         }
 
@@ -66,6 +93,11 @@ namespace ZipDeploy.Tests
         private void UploadPublishZip(params string[] files)
         {
             UploadZip("publish.zip", files);
+        }
+
+        private void InstallingZip(params string[] files)
+        {
+            UploadZip("installing.zip", files);
         }
 
         private void UploadZip(string zipFileName, params string[] files)
