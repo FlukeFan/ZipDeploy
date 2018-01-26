@@ -1,9 +1,6 @@
 ﻿using System;
 using System.IO;
-using System.IO.Compression;
-using System.Linq;
 using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -20,6 +17,8 @@ namespace ZipDeploy
             AwaitingRestart,
         }
 
+        public static ILoggerFactory LogFactory;
+
         private object              _stateLock      = new object();
         private State               _installState;
         private FileSystemWatcher   _fsw;
@@ -27,9 +26,10 @@ namespace ZipDeploy
         private RequestDelegate     _next;
         private string              _iisUrl;
 
-        public ZipDeploy(RequestDelegate next, ILogger<ZipDeploy> log, ZipDeployOptions options)
+        public ZipDeploy(RequestDelegate next, ILoggerFactory logFactory, ZipDeployOptions options)
         {
-            _log = log;
+            LogFactory = logFactory;
+            _log = logFactory.CreateLogger<ZipDeploy>();
             _next = next;
             _iisUrl = options.IisUrl;
 
@@ -82,165 +82,19 @@ namespace ZipDeploy
         private void InstallBinaries()
         {
             _log.LogDebug("Installing binaries (and renaming old ones)");
-
-            var config = (string)null;
-
-            _log.LogDebug("Opening publish.zip");
-            using (var zipFile = ZipFile.OpenRead("publish.zip"))
-            {
-                var entries = zipFile.Entries
-                    .ToDictionary(zfe => zfe.FullName, zfe => zfe);
-
-                _log.LogDebug($"{entries.Count} entries in zip");
-
-                var dlls = entries.Keys
-                    .Where(k => Path.GetExtension(k)?.ToLower() == ".dll")
-                    .ToList();
-
-                _log.LogDebug($"{dlls.Count} dlls in zip");
-
-                var dllsWithoutExtension = dlls.Select(dll => Path.GetFileNameWithoutExtension(dll)).ToList();
-
-                foreach (var entry in entries)
-                {
-                    var fullName = entry.Key;
-
-                    if (!dllsWithoutExtension.Contains(Path.GetFileNameWithoutExtension(fullName)))
-                        continue;
-
-                    if (File.Exists(fullName))
-                    {
-                        var destinationFile = $"{fullName}.fordelete.txt";
-
-                        if (File.Exists(destinationFile))
-                        {
-                            _log.LogDebug($"deleting existing {destinationFile}");
-                            File.Delete(destinationFile);
-                        }
-
-                        _log.LogDebug($"renaming {fullName} to {destinationFile}");
-                        File.Move(fullName, destinationFile);
-                    }
-
-                    var zipEntry = entry.Value;
-
-                    using (var streamWriter = File.Create(fullName))
-                    using (var zipInput = zipEntry.Open())
-                    {
-                        _log.LogDebug($"extracting {fullName}");
-                        zipInput.CopyTo(streamWriter);
-                    }
-                }
-
-                if (entries.ContainsKey("web.config"))
-                {
-                    using (var zipInput = entries["web.config"].Open())
-                    using (var sr = new StreamReader(zipInput))
-                        config = sr.ReadToEnd();
-                }
-            }
-
-            if (File.Exists("installing.zip"))
-            {
-                _log.LogDebug($"deleting existing installing.zip");
-                File.Delete("installing.zip");
-            }
-
-            _log.LogDebug($"renaming publish.zip to installing.zip");
-            File.Move("publish.zip", "installing.zip");
-
-            if (!string.IsNullOrEmpty(config) || File.Exists("web.config"))
-            {
-                _log.LogDebug("Triggering restart by touching web.config");
-                config = config ?? File.ReadAllText("web.config");
-                File.WriteAllText("web.config", config);
-                File.SetLastWriteTimeUtc("web.config", File.GetLastWriteTimeUtc("web.config") + TimeSpan.FromSeconds(1));
-            }
+            var unzipper = new Unzipper();
+            unzipper.UnzipBinaries();
         }
 
         private void CompleteInstallation()
         {
-            _log.LogDebug("detected intalling.zip; completing installation");
             if (File.Exists("installing.zip"))
             {
-                using (var zipFile = ZipFile.OpenRead("installing.zip"))
-                {
-                    var entries = zipFile.Entries
-                        .Where(e => e.Length != 0)
-                        .ToDictionary(zfe => zfe.FullName, zfe => zfe);
+                _log.LogDebug("detected installing.zip; completing installation");
 
-                    var dlls = entries.Keys
-                        .Where(k => Path.GetExtension(k)?.ToLower() == ".dll")
-                        .ToList();
-
-                    var dllsWithoutExtension = dlls.Select(dll => Path.GetFileNameWithoutExtension(dll)).ToList();
-
-                    foreach (var entry in entries)
-                    {
-                        var fullName = entry.Key;
-
-                        if (dllsWithoutExtension.Contains(Path.GetFileNameWithoutExtension(fullName)))
-                            continue;
-
-                        if (fullName == "web.config")
-                            continue;
-
-                        if (File.Exists(fullName))
-                        {
-                            var destinationFile = $"{fullName}.fordelete.txt";
-
-                            if (File.Exists(destinationFile))
-                                File.Delete(destinationFile);
-
-                            File.Move(fullName, destinationFile);
-                        }
-
-                        var zipEntry = entry.Value;
-
-                        var folder = Path.GetDirectoryName(fullName);
-
-                        if (!string.IsNullOrWhiteSpace(folder))
-                            Directory.CreateDirectory(folder);
-
-                        using (var streamWriter = File.Create(fullName))
-                        using (var zipInput = zipEntry.Open())
-                            zipInput.CopyTo(streamWriter);
-                    }
-                }
-
-                if (File.Exists("deployed.zip"))
-                    File.Delete("deployed.zip");
-
-                File.Move("installing.zip", "deployed.zip");
+                var unzipper = new Unzipper();
+                unzipper.SyncNonBinaries();
             }
-
-            DeleteForDeleteFiles();
-        }
-
-        private void DeleteForDeleteFiles()
-        {
-            foreach (var forDelete in Directory.GetFiles(".", "*.fordelete.txt", SearchOption.AllDirectories))
-            {
-                var count = 3;
-
-                while (File.Exists(forDelete))
-                {
-                    try
-                    {
-                        File.Delete(forDelete);
-                    }
-                    catch (Exception e)
-                    {
-                        _log.LogDebug(e, $"Error deleting {forDelete}");
-                        Thread.Sleep(0);
-
-                        if (count-- <= 0)
-                            throw;
-                    }
-                }
-            }
-
-            _log.LogDebug("Completed deletion of *.fordelete.txt files");
         }
 
         private void StartWatchingForInstaller()
