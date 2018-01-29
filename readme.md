@@ -15,6 +15,7 @@ Build commands:
 
 br                                      Restore dependencies (execute this first)
 b                                       Dev-build
+ba                                      Build all (including slow tests)
 bw                                      Watch dev-build
 bt [test]                               Run tests with filter Name~[test]
 btw [test]                              Watch run tests with filter Name~[test]

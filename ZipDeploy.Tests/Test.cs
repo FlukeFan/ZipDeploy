@@ -26,5 +26,12 @@ namespace ZipDeploy.Tests
             Directory.CreateDirectory(outputFolder);
             return outputFolder;
         }
+
+        public class IsSlowAttribute : CategoryAttribute
+        {
+            public IsSlowAttribute() : base("Slow")
+            {
+            }
+        }
     }
 }

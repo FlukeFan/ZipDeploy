@@ -10,6 +10,7 @@ namespace ZipDeploy.Tests.TestApp
     public class IisTests
     {
         [Test]
+        [Test.IsSlow]
         public void DeployZip()
         {
             IisAdmin.DeleteIisSite();

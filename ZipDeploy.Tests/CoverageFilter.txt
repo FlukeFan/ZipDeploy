@@ -1,0 +1,3 @@
+-[ZipDeploy]ZipDeploy.ZipDeploy
+-[ZipDeploy.Tests]ZipDeploy.Tests.TestApp.*
+-[ZipDeploy.Tests]ZipDeploy.Tests.FileSystem

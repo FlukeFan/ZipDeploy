@@ -38,12 +38,13 @@
     <CoverFilter Include="+[$(Asterisk)]$(Asterisk)" />
   </ItemGroup>
 
-  <Target Name="RunTests" Condition="'$(RunTests)'=='true' or '$(FilterTestFqn)'!=''" Inputs="@(TestDependencies)" Outputs="$(OutDir)$(TestSuccessFlag)">
-    <CallTarget Targets="RunTestsWithFilter" Condition="'$(FilterTestFqn)'!=''" />
-    <CallTarget Targets="RunTestsWithCoverage" Condition="'$(FilterTestFqn)'==''" />
+  <Target Name="RunTests" Condition="'$(RunTests)'=='true' or '$(FilterTest)'!=''" Inputs="@(TestDependencies)" Outputs="$(OutDir)$(TestSuccessFlag)">
+    <CallTarget Targets="RunTestsWithoutCoverage" Condition="'$(NoCoverage)'!=''" />
+    <CallTarget Targets="RunTestsWithCoverage" Condition="'$(NoCoverage)'==''" />
   </Target>
 
   <Target Name="RunTestsWithFilter">
+    <Message Importance="high" Text="Running tests without coverage: $(TestASsembly)" />
     <ColorExec FileName="&quot;$(NUnitConsole)&quot;" Arguments="$(TestAssembly) --where &quot;test =~ $(FilterTestFqn)&quot;" WorkingDirectory="$(OutDir)" Condition="$(TargetFramework.Contains(&quot;core&quot;))==False" />
     <ColorExec FileName="dotnet" Arguments="&quot;$(VsTestConsole)&quot; $(TestAssembly) --logger:trx --testcasefilter:FullyQualifiedName~$(FilterTestFqn)" WorkingDirectory="$(OutDir)" Condition="$(TargetFramework.Contains(&quot;core&quot;))==True" />
   </Target>
@@ -51,10 +52,12 @@
   <Target Name="RunTestsWithCoverage">
     <PropertyGroup>
       <TestStartTime>$([System.DateTime]::Now.AddSeconds(1).ToString(yyyy-MM-dd HH:mm:ss))</TestStartTime>
+      <QuotedFilter Condition="'$(FilterTest)'!=''">--where &quot;&quot;$(FilterTest)&quot;&quot;</QuotedFilter>
     </PropertyGroup>
+    <Message Importance="high" Text="Running tests with coverage: $(TestASsembly)" />
     <Message Text="TestStartTime=$(TestStartTime)" />
     <Error Text="Coverage will only work from a Windows client.  Current OS: $(OS)" Condition="'$(OS)'!='Windows_NT'" />
-    <ColorExec FileName="$(OpenCoverExe)" Arguments="-target:&quot;$(NUnitConsole)&quot; -targetargs:&quot;$(TestAssembly) --result=$(TestAssembly).results.xml&quot; -register:user -output:$(CoverageOutput) -returntargetcode -filter:&quot;@(CoverFilter, ' ')&quot; $(CoverFilterFileOption)" WorkingDirectory="$(OutDir)" Condition="$(TargetFramework.Contains(&quot;core&quot;))==False" />
+    <ColorExec FileName="$(OpenCoverExe)" Arguments="-target:&quot;$(NUnitConsole)&quot; -targetargs:&quot;$(TestAssembly) $(QuotedFilter) --result=$(TestAssembly).results.xml&quot; -register:user -output:$(CoverageOutput) -returntargetcode -filter:&quot;@(CoverFilter, ' ')&quot; $(CoverFilterFileOption)" WorkingDirectory="$(OutDir)" Condition="$(TargetFramework.Contains(&quot;core&quot;))==False" />
     <ColorExec FileName="$(OpenCoverExe)" Arguments="-target:dotnet.exe -targetargs:&quot;&quot;&quot;$(VsTestConsole)&quot;&quot; $(TestAssembly) --logger:trx&quot; -register:user -oldstyle -output:$(CoverageOutput) -returntargetcode -filter:&quot;@(CoverFilter, ' ')&quot; $(CoverFilterFileOption)" WorkingDirectory="$(OutDir)" Condition="$(TargetFramework.Contains(&quot;core&quot;))==True" />
     <RemoveDir Directories="$(OutDir)CoverageReport" />
     <ColorExec FileName="$(ReportGeneratorExe)" Arguments="-reports:$(OutDir)$(CoverageOutput) -targetdir:$(OutDir)CoverageReport -verbosity:Error -ReportTypes:Html;XmlSummary" />
