@@ -46,6 +46,23 @@ namespace ZipDeploy.Tests
         }
 
         [Test]
+        public void Unzip_ExistingMarkedDeleteFilesAreOverwritten()
+        {
+            var expectedContent = "existing content of binary.dll";
+
+            ExistingFiles("binary.dll", "binary.dll.fordelete.txt");
+
+            File.ReadAllText("binary.dll.fordelete.txt").Should().NotBe(expectedContent);
+
+            CreateZip("publish.zip", @"binary.dll");
+
+            var unzipper = new Unzipper();
+            unzipper.UnzipBinaries();
+
+            File.ReadAllText("binary.dll.fordelete.txt").Should().Be(expectedContent);
+        }
+
+        [Test]
         public void Unzip_NonBinariesAreNotUnzipped()
         {
             ExistingFiles();
