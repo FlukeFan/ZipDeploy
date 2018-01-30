@@ -38,8 +38,7 @@ namespace ZipDeploy.Tests
 
             CreateZip("publish.zip", "binary.dll");
 
-            var unzipper = new Unzipper();
-            unzipper.UnzipBinaries();
+            new Unzipper().UnzipBinaries();
 
             File.ReadAllText("binary.dll").Should().Be("zipped content of binary.dll");
             File.ReadAllText("binary.dll.fordelete.txt").Should().Be("existing content of binary.dll");
@@ -56,10 +55,21 @@ namespace ZipDeploy.Tests
 
             CreateZip("publish.zip", @"binary.dll");
 
-            var unzipper = new Unzipper();
-            unzipper.UnzipBinaries();
+            new Unzipper().UnzipBinaries();
 
             File.ReadAllText("binary.dll.fordelete.txt").Should().Be(expectedContent);
+        }
+
+        [Test]
+        public void Unzip_OverwritesWebConfig()
+        {
+            ExistingFiles("web.config");
+
+            CreateZip("publish.zip", @"web.config");
+
+            new Unzipper().UnzipBinaries();
+
+            File.ReadAllText("web.config").Should().Be("zipped content of web.config");
         }
 
         [Test]
@@ -69,8 +79,7 @@ namespace ZipDeploy.Tests
 
             CreateZip("publish.zip", @"wwwroot\lib\jQuery.js");
 
-            var unzipper = new Unzipper();
-            unzipper.UnzipBinaries();
+            new Unzipper().UnzipBinaries();
 
             File.Exists(@"wwwroot\lib\jQuery.js").Should().BeFalse("only binaries should be unzipped (they are not unzipped until 'sync')");
         }
@@ -82,8 +91,7 @@ namespace ZipDeploy.Tests
 
             CreateZip("installing.zip", "new.dll");
 
-            var unzipper = new Unzipper();
-            unzipper.SyncNonBinaries();
+            new Unzipper().SyncNonBinaries();
 
             File.Exists("obsolete.dll.fordelete.txt").Should().BeFalse("ZipDeploy should have deleted obsolete.dll.fordelete.txt");
         }
