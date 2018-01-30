@@ -32,7 +32,7 @@ namespace ZipDeploy.Tests
         }
 
         [Test]
-        public void BinariesAreRenamed()
+        public void Unzip_BinariesAreRenamed()
         {
             ExistingFiles("binary.dll");
 
@@ -43,6 +43,19 @@ namespace ZipDeploy.Tests
 
             File.ReadAllText("binary.dll").Should().Be("zipped content of binary.dll");
             File.ReadAllText("binary.dll.fordelete.txt").Should().Be("existing content of binary.dll");
+        }
+
+        [Test]
+        public void Unzip_NonBinariesAreNotUnzipped()
+        {
+            ExistingFiles();
+
+            CreateZip("publish.zip", @"wwwroot\lib\jQuery.js");
+
+            var unzipper = new Unzipper();
+            unzipper.UnzipBinaries();
+
+            File.Exists(@"wwwroot\lib\jQuery.js").Should().BeFalse("only binaries should be unzipped (they are not unzipped until 'sync')");
         }
 
         [Test]
