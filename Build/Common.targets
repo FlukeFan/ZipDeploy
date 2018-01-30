@@ -43,9 +43,12 @@
     <CallTarget Targets="RunTestsWithCoverage" Condition="'$(NoCoverage)'==''" />
   </Target>
 
-  <Target Name="RunTestsWithFilter">
+  <Target Name="RunTestsWithoutCoverage">
+    <PropertyGroup>
+      <QuotedFilter Condition="'$(FilterTest)'!=''">--where &quot;$(FilterTest)&quot;</QuotedFilter>
+    </PropertyGroup>
     <Message Importance="high" Text="Running tests without coverage: $(TestASsembly)" />
-    <ColorExec FileName="&quot;$(NUnitConsole)&quot;" Arguments="$(TestAssembly) --where &quot;test =~ $(FilterTestFqn)&quot;" WorkingDirectory="$(OutDir)" Condition="$(TargetFramework.Contains(&quot;core&quot;))==False" />
+    <ColorExec FileName="&quot;$(NUnitConsole)&quot;" Arguments="$(TestAssembly) $(QuotedFilter)" WorkingDirectory="$(OutDir)" Condition="$(TargetFramework.Contains(&quot;core&quot;))==False" />
     <ColorExec FileName="dotnet" Arguments="&quot;$(VsTestConsole)&quot; $(TestAssembly) --logger:trx --testcasefilter:FullyQualifiedName~$(FilterTestFqn)" WorkingDirectory="$(OutDir)" Condition="$(TargetFramework.Contains(&quot;core&quot;))==True" />
   </Target>
 
