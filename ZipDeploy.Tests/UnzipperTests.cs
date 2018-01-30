@@ -85,6 +85,20 @@ namespace ZipDeploy.Tests
         }
 
         [Test]
+        public void Unzip_OverwritesExistingUnzippedArchive()
+        {
+            ExistingFiles("installing.zip");
+
+            CreateZip("publish.zip");
+
+            new Unzipper().UnzipBinaries();
+
+            File.Exists("publish.zip").Should().BeFalse("publish should have been renamed");
+            File.Exists("installing.zip").Should().BeTrue("publish should have been renamed to installing.zip");
+            File.ReadAllText("installing.zip").Should().NotBe("existing content of installing.zip", "previous installing.zip should have been overwritten");
+        }
+
+        [Test]
         public void ObsoleteFilesAreRemoved()
         {
             ExistingFiles("new.dll", "obsolete.dll.fordelete.txt");
