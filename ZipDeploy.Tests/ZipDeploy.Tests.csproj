@@ -4,7 +4,7 @@
 
   <PropertyGroup>
     <TargetFramework>net461</TargetFramework>
-    <CoverageTarget>60</CoverageTarget>
+    <CoverageTarget>75</CoverageTarget>
   </PropertyGroup>
 
   <ItemGroup>
