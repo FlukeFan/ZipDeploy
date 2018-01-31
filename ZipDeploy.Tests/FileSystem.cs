@@ -18,6 +18,14 @@ namespace ZipDeploy.Tests
                 File.Copy(file, file.Replace(sourceDir, destDir));
         }
 
+        public static void CreateFolder(string file)
+        {
+            var folder = Path.GetDirectoryName(file);
+
+            if (!string.IsNullOrWhiteSpace(folder) && !Directory.Exists(folder))
+                Directory.CreateDirectory(folder);
+        }
+
         public static void DeleteFolder(string folder)
         {
             var count = 3;

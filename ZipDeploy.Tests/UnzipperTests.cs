@@ -141,10 +141,26 @@ namespace ZipDeploy.Tests
             File.ReadAllText("web.config").Should().Contain("existing");
         }
 
+        [Test]
+        public void Sync_NonBinariesAreExtracted()
+        {
+            ExistingFiles(@"wwwroot\file1.txt");
+
+            CreateZip("installing.zip", @"wwwroot\file1.txt", @"wwwroot\file2.txt");
+
+            new Unzipper().SyncNonBinaries();
+
+            File.ReadAllText(@"wwwroot\file1.txt").Should().Be(@"zipped content of wwwroot\file1.txt");
+            File.ReadAllText(@"wwwroot\file2.txt").Should().Be(@"zipped content of wwwroot\file2.txt");
+        }
+
         private void ExistingFiles(params string[] files)
         {
             foreach (var file in files)
+            {
+                FileSystem.CreateFolder(file);
                 File.WriteAllText(file, $"existing content of {file}");
+            }
         }
 
         private void CreateZip(string zipFileName, params string[] files)
