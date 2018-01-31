@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
@@ -95,6 +96,8 @@ namespace ZipDeploy
 
         public void SyncNonBinaries()
         {
+            var zippedFiles = new List<string>();
+
             using (var zipFile = ZipFile.OpenRead("installing.zip"))
             {
                 var entries = zipFile.Entries
@@ -110,6 +113,7 @@ namespace ZipDeploy
                 foreach (var entry in entries)
                 {
                     var fullName = entry.Key;
+                    zippedFiles.Add(NormalisePath(fullName));
 
                     if (dllsWithoutExtension.Contains(Path.GetFileNameWithoutExtension(fullName)))
                         continue;
@@ -145,13 +149,16 @@ namespace ZipDeploy
 
             File.Move("installing.zip", "deployed.zip");
 
-            DeleteForDeleteFiles();
+            DeleteObsoleteFiles(zippedFiles);
         }
 
-        private void DeleteForDeleteFiles()
+        private void DeleteObsoleteFiles(IList<string> zippedFiles)
         {
-            foreach (var forDelete in Directory.GetFiles(".", "*.fordelete.txt", SearchOption.AllDirectories))
+            foreach (var forDelete in Directory.GetFiles(".", "*", SearchOption.AllDirectories).Select(f => NormalisePath(f)))
             {
+                if (zippedFiles.Contains(forDelete) || ShouldIgnore(forDelete))
+                    continue;
+
                 var count = 3;
 
                 while (File.Exists(forDelete))
@@ -171,7 +178,33 @@ namespace ZipDeploy
                 }
             }
 
-            _log.LogDebug("Completed deletion of *.fordelete.txt files");
+            _log.LogDebug("Completed deletion of obsolete files");
+        }
+
+        private bool ShouldIgnore(string forDeleteFile)
+        {
+            var file = Path.GetFileName(forDeleteFile);
+
+            var knownZips = new List<string>
+            {
+                "publish.zip",
+                "installing.zip",
+                "deployed.zip",
+            };
+
+            var isZip = knownZips.Contains(file);
+
+            if (isZip)
+                return true;
+
+            return false;
+        }
+
+        private string NormalisePath(string file)
+        {
+            file = file.Replace("\\", "/");
+            file = file.StartsWith("./") ? file.Substring(2) : file;
+            return file;
         }
     }
 }

@@ -119,13 +119,15 @@ namespace ZipDeploy.Tests
         [Test]
         public void Sync_ObsoleteFilesAreRemoved()
         {
-            ExistingFiles("new.dll", "obsolete.dll.fordelete.txt");
+            ExistingFiles("new.dll", "obsolete.dll.fordelete.txt", @"wwwroot\legacy.txt", @"wwwroot\new.txt.fordelete.txt");
 
-            CreateZip("installing.zip", "new.dll");
+            CreateZip("installing.zip", "new.dll", @"wwwroot\new.txt");
 
             new Unzipper().SyncNonBinaries();
 
             File.Exists("obsolete.dll.fordelete.txt").Should().BeFalse("ZipDeploy should have deleted obsolete.dll.fordelete.txt");
+            File.Exists(@"wwwroot\legacy.txt").Should().BeFalse("legacy.txt should have been removed");
+            File.Exists(@"wwwroot\new.txt.fordelete.txt").Should().BeFalse("new.txt.fordelete.txt should have been removed");
         }
 
         [Test]
