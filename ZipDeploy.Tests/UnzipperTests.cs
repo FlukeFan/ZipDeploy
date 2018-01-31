@@ -99,7 +99,25 @@ namespace ZipDeploy.Tests
         }
 
         [Test]
-        public void ObsoleteFilesAreRemoved()
+        public void Sync_OverwritesExistingDeployedArchive()
+        {
+            var previousContent = "existing content of deployed.zip";
+
+            ExistingFiles("deployed.zip");
+
+            File.ReadAllText("deployed.zip").Should().Be(previousContent);
+
+            CreateZip("installing.zip");
+
+            new Unzipper().SyncNonBinaries();
+
+            File.Exists("installing.zip").Should().BeFalse("installing.zip should have been renamed");
+            File.Exists("deployed.zip").Should().BeTrue("installing should have been renamed to deployed.zip");
+            File.ReadAllText("deployed.zip").Should().NotBe(previousContent);
+        }
+
+        [Test]
+        public void Sync_ObsoleteFilesAreRemoved()
         {
             ExistingFiles("new.dll", "obsolete.dll.fordelete.txt");
 
@@ -108,6 +126,19 @@ namespace ZipDeploy.Tests
             new Unzipper().SyncNonBinaries();
 
             File.Exists("obsolete.dll.fordelete.txt").Should().BeFalse("ZipDeploy should have deleted obsolete.dll.fordelete.txt");
+        }
+
+        [Test]
+        public void Sync_BinariesAreNotReExtracted()
+        {
+            ExistingFiles("fresh.dll", "web.config");
+
+            CreateZip("installing.zip", "fresh.dll", "web.config");
+
+            new Unzipper().SyncNonBinaries();
+
+            File.ReadAllText("fresh.dll").Should().Contain("existing");
+            File.ReadAllText("web.config").Should().Contain("existing");
         }
 
         private void ExistingFiles(params string[] files)
