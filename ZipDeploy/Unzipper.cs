@@ -21,13 +21,13 @@ namespace ZipDeploy
         {
             var config = (string)null;
 
-            UsingArchive("publish.zip", (entries, dllsWithoutExtension) =>
+            UsingArchive("publish.zip", (entries, binariesWithoutExtension) =>
             {
                 foreach (var entry in entries)
                 {
                     var fullName = entry.Key;
 
-                    if (!dllsWithoutExtension.Contains(PathWithoutExtension(fullName)))
+                    if (!binariesWithoutExtension.Contains(PathWithoutExtension(fullName)))
                         continue;
 
                     if (File.Exists(fullName))
@@ -84,14 +84,14 @@ namespace ZipDeploy
         {
             var zippedFiles = new List<string>();
 
-            UsingArchive("installing.zip", (entries, dllsWithoutExtension) =>
+            UsingArchive("installing.zip", (entries, binariesWithoutExtension) =>
             {
                 foreach (var entry in entries)
                 {
                     var fullName = entry.Key;
                     zippedFiles.Add(NormalisePath(fullName));
 
-                    if (dllsWithoutExtension.Contains(PathWithoutExtension(fullName)))
+                    if (binariesWithoutExtension.Contains(PathWithoutExtension(fullName)))
                         continue;
 
                     if (fullName == "web.config")
@@ -138,16 +138,21 @@ namespace ZipDeploy
                     .Where(e => e.Length != 0)
                     .ToDictionary(zfe => zfe.FullName, zfe => zfe);
 
-                var dlls = entries.Keys
-                    .Where(k => Path.GetExtension(k)?.ToLower() == ".dll")
+                var binaries = entries.Keys
+                    .Where(k => IsBinary(k))
                     .ToList();
 
-                _log.LogDebug($"{dlls.Count} binaries (dlls) in zip");
+                _log.LogDebug($"{binaries.Count} binaries (dlls) in zip");
 
-                var dllsWithoutExtension = dlls.Select(dll => PathWithoutExtension(dll)).ToList();
+                var binariesWithoutExtension = binaries.Select(binary => PathWithoutExtension(binary)).ToList();
 
-                action(entries, dllsWithoutExtension);
+                action(entries, binariesWithoutExtension);
             }
+        }
+
+        private bool IsBinary(string file)
+        {
+            return Path.GetExtension(file)?.ToLower() == ".dll";
         }
 
         public static string PathWithoutExtension(string file)
