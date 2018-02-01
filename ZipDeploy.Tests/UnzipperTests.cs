@@ -164,6 +164,21 @@ namespace ZipDeploy.Tests
         }
 
         [Test]
+        public void CaseInsensitiveFilesAreHandled()
+        {
+            ExistingFiles("file.txt", "file.dll");
+
+            CreateZip("publish.zip", "FILE.TXT", "FILE.DLL");
+
+            var unzipper = new Unzipper();
+            unzipper.UnzipBinaries();
+            unzipper.SyncNonBinaries();
+
+            File.ReadAllText("FILE.TXT").Should().Be("zipped content of FILE.TXT");
+            File.ReadAllText("FILE.DLL").Should().Be("zipped content of FILE.DLL");
+        }
+
+        [Test]
         public void PathWithoutExtension()
         {
             Unzipper.PathWithoutExtension("test.dll").Should().Be("test");
