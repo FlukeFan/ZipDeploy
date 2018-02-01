@@ -119,7 +119,11 @@ namespace ZipDeploy.Tests
         [Test]
         public void Sync_ObsoleteFilesAreRemoved()
         {
-            ExistingFiles("new.dll", "obsolete.dll.fordelete.txt", @"wwwroot\legacy.txt", @"wwwroot\new.txt.fordelete.txt");
+            ExistingFiles(
+                "new.dll",
+                "obsolete.dll.fordelete.txt",
+                @"wwwroot\legacy.txt",
+                @"wwwroot\new.txt.fordelete.txt");
 
             CreateZip("installing.zip", "new.dll", @"wwwroot\new.txt");
 
@@ -148,12 +152,23 @@ namespace ZipDeploy.Tests
         {
             ExistingFiles(@"wwwroot\file1.txt");
 
-            CreateZip("installing.zip", @"wwwroot\file1.txt", @"wwwroot\file2.txt");
+            CreateZip("installing.zip",
+                @"file1.dll",
+                @"wwwroot\file1.txt",
+                @"wwwroot\file2.txt");
 
             new Unzipper().SyncNonBinaries();
 
             File.ReadAllText(@"wwwroot\file1.txt").Should().Be(@"zipped content of wwwroot\file1.txt");
             File.ReadAllText(@"wwwroot\file2.txt").Should().Be(@"zipped content of wwwroot\file2.txt");
+        }
+
+        [Test]
+        public void PathWithoutExtension()
+        {
+            Unzipper.PathWithoutExtension("test.dll").Should().Be("test");
+            Unzipper.PathWithoutExtension(@"wwwroot\test.txt").Should().Be(@"wwwroot\test");
+            Unzipper.PathWithoutExtension(@"wwwroot\test.dll.dll").Should().Be(@"wwwroot\test");
         }
 
         private void ExistingFiles(params string[] files)

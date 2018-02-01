@@ -21,27 +21,13 @@ namespace ZipDeploy
         {
             var config = (string)null;
 
-            _log.LogDebug("Opening publish.zip");
-            using (var zipFile = ZipFile.OpenRead("publish.zip"))
+            UsingArchive("publish.zip", (entries, dllsWithoutExtension) =>
             {
-                var entries = zipFile.Entries
-                    .ToDictionary(zfe => zfe.FullName, zfe => zfe);
-
-                _log.LogDebug($"{entries.Count} entries in zip");
-
-                var dlls = entries.Keys
-                    .Where(k => Path.GetExtension(k)?.ToLower() == ".dll")
-                    .ToList();
-
-                _log.LogDebug($"{dlls.Count} dlls in zip");
-
-                var dllsWithoutExtension = dlls.Select(dll => Path.GetFileNameWithoutExtension(dll)).ToList();
-
                 foreach (var entry in entries)
                 {
                     var fullName = entry.Key;
 
-                    if (!dllsWithoutExtension.Contains(Path.GetFileNameWithoutExtension(fullName)))
+                    if (!dllsWithoutExtension.Contains(PathWithoutExtension(fullName)))
                         continue;
 
                     if (File.Exists(fullName))
@@ -74,7 +60,7 @@ namespace ZipDeploy
                     using (var sr = new StreamReader(zipInput))
                         config = sr.ReadToEnd();
                 }
-            }
+            });
 
             if (File.Exists("installing.zip"))
             {
@@ -98,24 +84,14 @@ namespace ZipDeploy
         {
             var zippedFiles = new List<string>();
 
-            using (var zipFile = ZipFile.OpenRead("installing.zip"))
+            UsingArchive("installing.zip", (entries, dllsWithoutExtension) =>
             {
-                var entries = zipFile.Entries
-                    .Where(e => e.Length != 0)
-                    .ToDictionary(zfe => zfe.FullName, zfe => zfe);
-
-                var dlls = entries.Keys
-                    .Where(k => Path.GetExtension(k)?.ToLower() == ".dll")
-                    .ToList();
-
-                var dllsWithoutExtension = dlls.Select(dll => Path.GetFileNameWithoutExtension(dll)).ToList();
-
                 foreach (var entry in entries)
                 {
                     var fullName = entry.Key;
                     zippedFiles.Add(NormalisePath(fullName));
 
-                    if (dllsWithoutExtension.Contains(Path.GetFileNameWithoutExtension(fullName)))
+                    if (dllsWithoutExtension.Contains(PathWithoutExtension(fullName)))
                         continue;
 
                     if (fullName == "web.config")
@@ -142,7 +118,7 @@ namespace ZipDeploy
                     using (var zipInput = zipEntry.Open())
                         zipInput.CopyTo(streamWriter);
                 }
-            }
+            });
 
             if (File.Exists("deployed.zip"))
                 File.Delete("deployed.zip");
@@ -150,6 +126,41 @@ namespace ZipDeploy
             File.Move("installing.zip", "deployed.zip");
 
             DeleteObsoleteFiles(zippedFiles);
+        }
+
+        private void UsingArchive(string zipFile, Action<IDictionary<string, ZipArchiveEntry>, IList<string>> action)
+        {
+            _log.LogDebug($"Opening {zipFile}");
+
+            using (var zipArchive = ZipFile.OpenRead(zipFile))
+            {
+                var entries = zipArchive.Entries
+                    .Where(e => e.Length != 0)
+                    .ToDictionary(zfe => zfe.FullName, zfe => zfe);
+
+                var dlls = entries.Keys
+                    .Where(k => Path.GetExtension(k)?.ToLower() == ".dll")
+                    .ToList();
+
+                _log.LogDebug($"{dlls.Count} binaries (dlls) in zip");
+
+                var dllsWithoutExtension = dlls.Select(dll => PathWithoutExtension(dll)).ToList();
+
+                action(entries, dllsWithoutExtension);
+            }
+        }
+
+        public static string PathWithoutExtension(string file)
+        {
+            var extension = Path.GetExtension(file);
+
+            while (!string.IsNullOrEmpty(extension))
+            {
+                file = file.Substring(0, file.Length - extension.Length);
+                extension = Path.GetExtension(file);
+            }
+
+            return file;
         }
 
         private void DeleteObsoleteFiles(IList<string> zippedFiles)
