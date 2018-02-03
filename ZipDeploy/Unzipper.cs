@@ -20,12 +20,14 @@ namespace ZipDeploy
         public void UnzipBinaries()
         {
             var config = (string)null;
+            var zippedFiles = new List<string>();
 
             UsingArchive("publish.zip", (entries, binariesWithoutExtension) =>
             {
                 foreach (var entry in entries)
                 {
                     var fullName = entry.Key;
+                    zippedFiles.Add(NormalisePath(fullName));
 
                     if (!binariesWithoutExtension.Contains(PathWithoutExtension(fullName)))
                         continue;
@@ -62,6 +64,8 @@ namespace ZipDeploy
                 }
             });
 
+            RenameObsoleteBinaries(zippedFiles);
+
             if (File.Exists("installing.zip"))
             {
                 _log.LogDebug($"deleting existing installing.zip");
@@ -97,15 +101,7 @@ namespace ZipDeploy
                     if (fullName == "web.config")
                         continue;
 
-                    if (File.Exists(fullName))
-                    {
-                        var destinationFile = $"{fullName}.fordelete.txt";
-
-                        if (File.Exists(destinationFile))
-                            File.Delete(destinationFile);
-
-                        File.Move(fullName, destinationFile);
-                    }
+                    RenameFile(fullName);
 
                     var zipEntry = entry.Value;
 
@@ -168,6 +164,13 @@ namespace ZipDeploy
             return file;
         }
 
+        private void RenameObsoleteBinaries(IList<string> zippedFiles)
+        {
+            foreach (var fullName in Directory.GetFiles(".", "*", SearchOption.AllDirectories).Select(f => NormalisePath(f)))
+                if (IsBinary(fullName) && !zippedFiles.Contains(fullName))
+                    RenameFile(fullName);
+        }
+
         private void DeleteObsoleteFiles(IList<string> zippedFiles)
         {
             foreach (var forDelete in Directory.GetFiles(".", "*", SearchOption.AllDirectories).Select(f => NormalisePath(f)))
@@ -175,26 +178,41 @@ namespace ZipDeploy
                 if (zippedFiles.Contains(forDelete) || ShouldIgnore(forDelete))
                     continue;
 
-                var count = 3;
-
-                while (File.Exists(forDelete))
-                {
-                    try
-                    {
-                        File.Delete(forDelete);
-                    }
-                    catch (Exception e)
-                    {
-                        _log.LogDebug(e, $"Error deleting {forDelete}");
-                        Thread.Sleep(0);
-
-                        if (count-- <= 0)
-                            throw;
-                    }
-                }
+                DeleteFile(forDelete);
             }
 
             _log.LogDebug("Completed deletion of obsolete files");
+        }
+
+        private void RenameFile(string file)
+        {
+            if (!File.Exists(file))
+                return;
+
+            var destinationFile = file + ".fordelete.txt";
+            DeleteFile(destinationFile);
+            File.Move(file, destinationFile);
+        }
+
+        private void DeleteFile(string file)
+        {
+            var count = 3;
+
+            while (File.Exists(file))
+            {
+                try
+                {
+                    File.Delete(file);
+                }
+                catch (Exception e)
+                {
+                    _log.LogDebug(e, $"Error deleting {file}");
+                    Thread.Sleep(0);
+
+                    if (count-- <= 0)
+                        throw;
+                }
+            }
         }
 
         private bool ShouldIgnore(string forDeleteFile)

@@ -99,6 +99,19 @@ namespace ZipDeploy.Tests
         }
 
         [Test]
+        public void Unzip_RenamesObsoleteBinaries()
+        {
+            ExistingFiles("file1.dll", "legacy.dll");
+
+            CreateZip("publish.zip", "file1.dll");
+
+            new Unzipper().UnzipBinaries();
+
+            File.ReadAllText("file1.dll").Should().Be("zipped content of file1.dll");
+            File.Exists("legacy.dll").Should().BeFalse("obsolete legacy.dll should have been renamed");
+        }
+
+        [Test]
         public void Sync_OverwritesExistingDeployedArchive()
         {
             var previousContent = "existing content of deployed.zip";
