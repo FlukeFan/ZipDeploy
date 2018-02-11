@@ -9,8 +9,7 @@ For this walkthrough, you will need:
 * `7za.exe`
 * `ncftpput.exe`
 
-IIS and FTP server can be enabled "Turn Windows features on or off".
-".NET Core Windows Server Hosting bundle" needs to be downloaded and installed to add the AspNetCoreModule to IIS.
+IIS and FTP server can be enabled in Windows from the "Turn Windows features on or off" dialog.  ".NET Core Windows Server Hosting bundle" needs to be downloaded and installed to add the AspNetCoreModule to IIS.
 `7za.exe` and `ncftpput.exe` are freely available downloads; the walkthrough assumes you have them in your PATH.
 
 Checkout your ASP.NET Core MVC application to `C:\Temp\MyApp`, and add the ZipDeploy package:
@@ -50,7 +49,7 @@ Note two things:
 * The zip file should be rooted at the same point as the site (note the relative folder and trailing backslash to `7za.exe`).  For example, the `web.config` should be directly inside the zip file, not inside a folder inside the zip file;
 * The upload should use a temporary filename until the upload is complete.  The option `-S .tmp` means the file is uploaded as `publish.zip.tmp`, then renamed to `publish.zip` once the upload is complete.
 
-ZipDeploy should detect the presence of the zip file.  It will rename the current binaries (which is allowed even when they are in use), then unzip the new ones.
+ZipDeploy should detect the presence of the zip file.  It will rename the current binaries (which is allowed even when they are in use), and unzip the new ones.
 
 ZipDeploy then updates the web.config, which makes IIS recycle the ASP.NET Core process.
 
