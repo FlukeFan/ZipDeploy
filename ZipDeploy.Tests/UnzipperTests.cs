@@ -38,7 +38,7 @@ namespace ZipDeploy.Tests
 
             CreateZip("publish.zip", "binary.dll");
 
-            new Unzipper().UnzipBinaries();
+            NewUnzipper().UnzipBinaries();
 
             File.ReadAllText("binary.dll").Should().Be("zipped content of binary.dll");
             File.ReadAllText("binary.dll.fordelete.txt").Should().Be("existing content of binary.dll");
@@ -55,7 +55,7 @@ namespace ZipDeploy.Tests
 
             CreateZip("publish.zip", @"binary.dll");
 
-            new Unzipper().UnzipBinaries();
+            NewUnzipper().UnzipBinaries();
 
             File.ReadAllText("binary.dll.fordelete.txt").Should().Be(expectedContent);
         }
@@ -67,7 +67,7 @@ namespace ZipDeploy.Tests
 
             CreateZip("publish.zip", @"web.config");
 
-            new Unzipper().UnzipBinaries();
+            NewUnzipper().UnzipBinaries();
 
             File.ReadAllText("web.config").Should().Be("zipped content of web.config");
         }
@@ -79,7 +79,7 @@ namespace ZipDeploy.Tests
 
             CreateZip("publish.zip", @"wwwroot\lib\jQuery.js");
 
-            new Unzipper().UnzipBinaries();
+            NewUnzipper().UnzipBinaries();
 
             File.Exists(@"wwwroot\lib\jQuery.js").Should().BeFalse("only binaries should be unzipped (they are not unzipped until 'sync')");
         }
@@ -91,7 +91,7 @@ namespace ZipDeploy.Tests
 
             CreateZip("publish.zip");
 
-            new Unzipper().UnzipBinaries();
+            NewUnzipper().UnzipBinaries();
 
             File.Exists("publish.zip").Should().BeFalse("publish should have been renamed");
             File.Exists("installing.zip").Should().BeTrue("publish should have been renamed to installing.zip");
@@ -105,7 +105,7 @@ namespace ZipDeploy.Tests
 
             CreateZip("publish.zip", "file1.dll");
 
-            new Unzipper().UnzipBinaries();
+            NewUnzipper().UnzipBinaries();
 
             File.ReadAllText("file1.dll").Should().Be("zipped content of file1.dll");
             File.Exists("legacy.dll").Should().BeFalse("obsolete legacy.dll should have been renamed");
@@ -122,7 +122,7 @@ namespace ZipDeploy.Tests
 
             CreateZip("installing.zip");
 
-            new Unzipper().SyncNonBinaries();
+            NewUnzipper().SyncNonBinaries();
 
             File.Exists("installing.zip").Should().BeFalse("installing.zip should have been renamed");
             File.Exists("deployed.zip").Should().BeTrue("installing should have been renamed to deployed.zip");
@@ -140,7 +140,7 @@ namespace ZipDeploy.Tests
 
             CreateZip("installing.zip", "new.dll", @"wwwroot\new.txt");
 
-            new Unzipper().SyncNonBinaries();
+            NewUnzipper().SyncNonBinaries();
 
             File.Exists("obsolete.dll.fordelete.txt").Should().BeFalse("ZipDeploy should have deleted obsolete.dll.fordelete.txt");
             File.Exists(@"wwwroot\legacy.txt").Should().BeFalse("legacy.txt should have been removed");
@@ -154,7 +154,7 @@ namespace ZipDeploy.Tests
 
             CreateZip("installing.zip", "fresh.dll", "web.config");
 
-            new Unzipper().SyncNonBinaries();
+            NewUnzipper().SyncNonBinaries();
 
             File.ReadAllText("fresh.dll").Should().Contain("existing");
             File.ReadAllText("web.config").Should().Contain("existing");
@@ -170,7 +170,7 @@ namespace ZipDeploy.Tests
                 @"wwwroot\file1.txt",
                 @"wwwroot\file2.txt");
 
-            new Unzipper().SyncNonBinaries();
+            NewUnzipper().SyncNonBinaries();
 
             File.ReadAllText(@"wwwroot\file1.txt").Should().Be(@"zipped content of wwwroot\file1.txt");
             File.ReadAllText(@"wwwroot\file2.txt").Should().Be(@"zipped content of wwwroot\file2.txt");
@@ -183,7 +183,7 @@ namespace ZipDeploy.Tests
 
             CreateZip("publish.zip", "FILE.TXT", "FILE.DLL");
 
-            var unzipper = new Unzipper();
+            var unzipper = NewUnzipper();
             unzipper.UnzipBinaries();
             unzipper.SyncNonBinaries();
 
@@ -192,11 +192,44 @@ namespace ZipDeploy.Tests
         }
 
         [Test]
+        public void PathsCanBeExcluded()
+        {
+            ExistingFiles(
+                "log.txt",
+                "uploads/sub/sub/file1.txt",
+                "uploads//sub/file2.dll",
+                "uploads2\\subfolder\\file3.txt");
+
+            CreateZip("publish.zip", "file1.txt");
+
+            var unzipper = NewUnzipper(opt => opt
+                .IgnorePathStarting("log.txt")
+                .IgnorePathStarting("uploads\\sub")
+                .IgnorePathStarting("uploads2\\subfolder"));
+
+            unzipper.UnzipBinaries();
+            unzipper.SyncNonBinaries();
+
+            File.Exists("file1.txt").Should().BeTrue("unzip should have extracted file1.txt");
+            File.Exists("log.txt").Should().BeTrue("log.txt should have been ignored");
+            File.Exists("uploads/sub/sub/file1.txt").Should().BeTrue("uploads/sub/file1.txt should have been ignored");
+            File.Exists("uploads/sub/file2.dll").Should().BeTrue("uploads/file2.dll should have been ignored");
+            File.Exists("uploads2/subfolder/file3.txt").Should().BeTrue("uploads2/subfolder/file3.txt should have been ignored");
+        }
+
+        [Test]
         public void PathWithoutExtension()
         {
             Unzipper.PathWithoutExtension("test.dll").Should().Be("test");
             Unzipper.PathWithoutExtension(@"wwwroot\test.txt").Should().Be(@"wwwroot\test");
             Unzipper.PathWithoutExtension(@"wwwroot\test.dll.dll").Should().Be(@"wwwroot\test");
+        }
+
+        private Unzipper NewUnzipper(Action<ZipDeployOptions> configure = null)
+        {
+            var options = new ZipDeployOptions();
+            configure?.Invoke(options);
+            return new Unzipper(options);
         }
 
         private void ExistingFiles(params string[] files)

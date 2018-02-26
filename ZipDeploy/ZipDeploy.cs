@@ -24,16 +24,16 @@ namespace ZipDeploy
         private FileSystemWatcher   _fsw;
         private ILogger<ZipDeploy>  _log;
         private RequestDelegate     _next;
-        private string              _iisUrl;
+        private ZipDeployOptions    _options;
 
         public ZipDeploy(RequestDelegate next, ILoggerFactory logFactory, ZipDeployOptions options)
         {
             LogFactory = logFactory;
             _log = logFactory.CreateLogger<ZipDeploy>();
             _next = next;
-            _iisUrl = options.IisUrl;
+            _options = options;
 
-            _log.LogInformation($"ZipDeploy started [IisUrl={_iisUrl}]");
+            _log.LogInformation($"ZipDeploy started [IisUrl={_options.IisUrl}] [IgnoredPaths={string.Join(", ", _options.PathsToIgnore)}]");
 
             CompleteInstallation();
 
@@ -82,7 +82,7 @@ namespace ZipDeploy
         private void InstallBinaries()
         {
             _log.LogDebug("Installing binaries (and renaming old ones)");
-            var unzipper = new Unzipper();
+            var unzipper = new Unzipper(_options);
             unzipper.UnzipBinaries();
         }
 
@@ -92,7 +92,7 @@ namespace ZipDeploy
             {
                 _log.LogDebug("detected installing.zip; completing installation");
 
-                var unzipper = new Unzipper();
+                var unzipper = new Unzipper(_options);
                 unzipper.SyncNonBinaries();
             }
         }
@@ -140,14 +140,14 @@ namespace ZipDeploy
 
         private void StartWebRequest()
         {
-            if (string.IsNullOrWhiteSpace(_iisUrl))
+            if (string.IsNullOrWhiteSpace(_options.IisUrl))
                 return;
 
             Task.Run(() => Handler.LogAndSwallowException(_log, "CallIis", () =>
             {
-                _log.LogDebug($"Making request to IIS: {_iisUrl}");
+                _log.LogDebug($"Making request to IIS: {_options.IisUrl}");
                 using (var client = new HttpClient())
-                using (client.GetAsync(_iisUrl).GetAwaiter().GetResult())
+                using (client.GetAsync(_options.IisUrl).GetAwaiter().GetResult())
                 { }
             }));
         }

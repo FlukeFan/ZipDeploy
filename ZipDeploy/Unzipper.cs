@@ -11,10 +11,12 @@ namespace ZipDeploy
     public class Unzipper
     {
         private ILogger<Unzipper>   _log;
+        private ZipDeployOptions    _options;
 
-        public Unzipper()
+        public Unzipper(ZipDeployOptions options)
         {
             _log = ZipDeploy.LogFactory.CreateLogger<Unzipper>();
+            _options = options;
         }
 
         public void UnzipBinaries()
@@ -167,7 +169,7 @@ namespace ZipDeploy
         private void RenameObsoleteBinaries(IList<string> zippedFiles)
         {
             foreach (var fullName in Directory.GetFiles(".", "*", SearchOption.AllDirectories).Select(f => NormalisePath(f)))
-                if (IsBinary(fullName) && !zippedFiles.Contains(fullName))
+                if (IsBinary(fullName) && !zippedFiles.Contains(fullName) && !ShouldIgnore(fullName))
                     RenameFile(fullName);
         }
 
@@ -229,6 +231,9 @@ namespace ZipDeploy
             var isZip = knownZips.Contains(file);
 
             if (isZip)
+                return true;
+
+            if (_options.PathsToIgnore.Any(p => NormalisePath(forDeleteFile).ToLower().StartsWith(NormalisePath(p.ToLower()))))
                 return true;
 
             return false;
