@@ -34,14 +34,16 @@ namespace ZipDeploy.Tests
         [Test]
         public void Unzip_BinariesAreRenamed()
         {
-            ExistingFiles("binary.dll");
+            ExistingFiles("binary1.dll", "binary2.exe");
 
-            CreateZip("publish.zip", "binary.dll");
+            CreateZip("publish.zip", "binary1.dll", "binary2.exe");
 
             NewUnzipper().UnzipBinaries();
 
-            File.ReadAllText("binary.dll").Should().Be("zipped content of binary.dll");
-            File.ReadAllText("__binary.dll.fordelete.txt").Should().Be("existing content of binary.dll");
+            File.ReadAllText("binary1.dll").Should().Be("zipped content of binary1.dll");
+            File.ReadAllText("zzz__binary1.dll.fordelete.txt").Should().Be("existing content of binary1.dll");
+            File.ReadAllText("binary2.exe").Should().Be("zipped content of binary2.exe");
+            File.ReadAllText("zzz__binary2.exe.fordelete.txt").Should().Be("existing content of binary2.exe");
         }
 
         [Test]
@@ -49,15 +51,15 @@ namespace ZipDeploy.Tests
         {
             var expectedContent = "existing content of binary.dll";
 
-            ExistingFiles("binary.dll", "__binary.dll.fordelete.txt");
+            ExistingFiles("binary.dll", "zzz__binary.dll.fordelete.txt");
 
-            File.ReadAllText("__binary.dll.fordelete.txt").Should().NotBe(expectedContent);
+            File.ReadAllText("zzz__binary.dll.fordelete.txt").Should().NotBe(expectedContent);
 
             CreateZip("publish.zip", @"binary.dll");
 
             NewUnzipper().UnzipBinaries();
 
-            File.ReadAllText("__binary.dll.fordelete.txt").Should().Be(expectedContent);
+            File.ReadAllText("zzz__binary.dll.fordelete.txt").Should().Be(expectedContent);
         }
 
         [Test]
@@ -134,17 +136,17 @@ namespace ZipDeploy.Tests
         {
             ExistingFiles(
                 "new.dll",
-                "__obsolete.dll.fordelete.txt",
+                "zzz__obsolete.dll.fordelete.txt",
                 @"wwwroot\legacy.txt",
-                @"wwwroot\__new.txt.fordelete.txt");
+                @"wwwroot\zzz__new.txt.fordelete.txt");
 
             CreateZip("installing.zip", "new.dll", @"wwwroot\new.txt");
 
             NewUnzipper().SyncNonBinaries();
 
-            File.Exists("__obsolete.dll.fordelete.txt").Should().BeFalse("ZipDeploy should have deleted obsolete.dll.fordelete.txt");
+            File.Exists("zzz__obsolete.dll.fordelete.txt").Should().BeFalse("ZipDeploy should have deleted obsolete.dll.fordelete.txt");
             File.Exists(@"wwwroot\legacy.txt").Should().BeFalse("legacy.txt should have been removed");
-            File.Exists(@"wwwroot\__new.txt.fordelete.txt").Should().BeFalse("new.txt.fordelete.txt should have been removed");
+            File.Exists(@"wwwroot\zzz__new.txt.fordelete.txt").Should().BeFalse("new.txt.fordelete.txt should have been removed");
         }
 
         [Test]

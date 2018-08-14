@@ -138,7 +138,8 @@ namespace ZipDeploy
 
         private bool IsBinary(string file)
         {
-            return Path.GetExtension(file)?.ToLower() == ".dll";
+            var extension = Path.GetExtension(file)?.ToLower();
+            return new string[] { ".dll", ".exe" }.Contains(extension);
         }
 
         public static string PathWithoutExtension(string file)
@@ -181,7 +182,7 @@ namespace ZipDeploy
 
             var fileName = Path.GetFileName(file);
             var path = Path.GetDirectoryName(file);
-            var destinationFile = Path.Combine(path, $"__{fileName}.fordelete.txt");
+            var destinationFile = Path.Combine(path, $"zzz__{fileName}.fordelete.txt");
 
             DeleteFile(destinationFile);
 
