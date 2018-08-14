@@ -34,19 +34,7 @@ namespace ZipDeploy
                     if (!binariesWithoutExtension.Contains(PathWithoutExtension(fullName)))
                         continue;
 
-                    if (File.Exists(fullName))
-                    {
-                        var destinationFile = $"{fullName}.fordelete.txt";
-
-                        if (File.Exists(destinationFile))
-                        {
-                            _log.LogDebug($"deleting existing {destinationFile}");
-                            File.Delete(destinationFile);
-                        }
-
-                        _log.LogDebug($"renaming {fullName} to {destinationFile}");
-                        File.Move(fullName, destinationFile);
-                    }
+                    RenameFile(fullName);
 
                     var zipEntry = entry.Value;
 
@@ -191,8 +179,13 @@ namespace ZipDeploy
             if (!File.Exists(file))
                 return;
 
-            var destinationFile = file + ".fordelete.txt";
+            var fileName = Path.GetFileName(file);
+            var path = Path.GetDirectoryName(file);
+            var destinationFile = Path.Combine(path, $"__{fileName}.fordelete.txt");
+
             DeleteFile(destinationFile);
+
+            _log.LogDebug($"renaming {file} to {destinationFile}");
             File.Move(file, destinationFile);
         }
 
@@ -204,6 +197,7 @@ namespace ZipDeploy
             {
                 try
                 {
+                    _log.LogDebug($"deleting existing {file}");
                     File.Delete(file);
                 }
                 catch (Exception e)
