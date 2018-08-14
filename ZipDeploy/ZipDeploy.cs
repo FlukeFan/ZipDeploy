@@ -33,7 +33,7 @@ namespace ZipDeploy
             _next = next;
             _options = options;
 
-            _log.LogInformation($"ZipDeploy started [IisUrl={_options.IisUrl}] [IgnoredPaths={string.Join(", ", _options.PathsToIgnore)}]");
+            _log.LogInformation($"ZipDeploy started [IisUrl={_options.IisUrl}] [IgnoredPaths={string.Join(", ", _options.PathsToIgnore)}] [UserDomainName={Environment.UserDomainName}] [UserName={Environment.UserName}]");
 
             CompleteInstallation();
 
