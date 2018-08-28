@@ -106,12 +106,12 @@ namespace ZipDeploy
                 }
             });
 
+            DeleteObsoleteFiles(zippedFiles);
+
             if (File.Exists("deployed.zip"))
                 File.Delete("deployed.zip");
 
             File.Move("installing.zip", "deployed.zip");
-
-            DeleteObsoleteFiles(zippedFiles);
         }
 
         private void UsingArchive(string zipFile, Action<IDictionary<string, ZipArchiveEntry>, IList<string>> action)
