@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading;
 using Microsoft.Extensions.Logging;
 
@@ -34,16 +35,7 @@ namespace ZipDeploy
                     if (!binariesWithoutExtension.Contains(PathWithoutExtension(fullName)))
                         continue;
 
-                    RenameFile(fullName);
-
-                    var zipEntry = entry.Value;
-
-                    using (var streamWriter = File.Create(fullName))
-                    using (var zipInput = zipEntry.Open())
-                    {
-                        _log.LogDebug($"extracting {fullName}");
-                        zipInput.CopyTo(streamWriter);
-                    }
+                    Extract(fullName, entry.Value);
                 }
 
                 if (entries.ContainsKey("web.config"))
@@ -91,18 +83,7 @@ namespace ZipDeploy
                     if (fullName == "web.config")
                         continue;
 
-                    RenameFile(fullName);
-
-                    var zipEntry = entry.Value;
-
-                    var folder = Path.GetDirectoryName(fullName);
-
-                    if (!string.IsNullOrWhiteSpace(folder))
-                        Directory.CreateDirectory(folder);
-
-                    using (var streamWriter = File.Create(fullName))
-                    using (var zipInput = zipEntry.Open())
-                        zipInput.CopyTo(streamWriter);
+                    Extract(fullName, entry.Value);
                 }
             });
 
@@ -112,6 +93,49 @@ namespace ZipDeploy
                 File.Delete("deployed.zip");
 
             File.Move("installing.zip", "deployed.zip");
+        }
+
+        private void Extract(string fullName, ZipArchiveEntry zipEntry)
+        {
+            var renamed = RenameFile(fullName);
+
+            var folder = Path.GetDirectoryName(fullName);
+
+            if (!string.IsNullOrWhiteSpace(folder))
+                Directory.CreateDirectory(folder);
+
+            using (var streamWriter = File.Create(fullName))
+            using (var zipInput = zipEntry.Open())
+            {
+                _log.LogDebug($"extracting {fullName}");
+                zipInput.CopyTo(streamWriter);
+            }
+
+            if (renamed == null)
+                return;
+
+            if (new FileInfo(fullName).Length != new FileInfo(renamed).Length)
+                return;
+
+            var newHash = HashFile(fullName);
+            var existingHash = HashFile(renamed);
+
+            if (newHash != existingHash)
+                return;
+
+            // replace the existing file as it has not changed
+            DeleteFile(fullName);
+            File.Move(renamed, fullName);
+        }
+
+        private string HashFile(string fileName)
+        {
+            using (var md5 = MD5.Create())
+            using (var stream = File.OpenRead(fileName))
+            {
+                var hash = md5.ComputeHash(stream);
+                return BitConverter.ToString(hash);
+            }
         }
 
         private void UsingArchive(string zipFile, Action<IDictionary<string, ZipArchiveEntry>, IList<string>> action)
@@ -175,10 +199,10 @@ namespace ZipDeploy
             _log.LogDebug("Completed deletion of obsolete files");
         }
 
-        private void RenameFile(string file)
+        private string RenameFile(string file)
         {
             if (!File.Exists(file))
-                return;
+                return null;
 
             var fileName = Path.GetFileName(file);
             var path = Path.GetDirectoryName(file);
@@ -188,6 +212,8 @@ namespace ZipDeploy
 
             _log.LogDebug($"renaming {file} to {destinationFile}");
             File.Move(file, destinationFile);
+
+            return destinationFile;
         }
 
         private void DeleteFile(string file)
