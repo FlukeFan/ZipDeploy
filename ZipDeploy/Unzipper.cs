@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Security.Cryptography;
 using System.Threading;
 using Microsoft.Extensions.Logging;
 
@@ -117,25 +116,16 @@ namespace ZipDeploy
             if (new FileInfo(fullName).Length != new FileInfo(renamed).Length)
                 return;
 
-            var newHash = HashFile(fullName);
-            var existingHash = HashFile(renamed);
+            var newBytes = File.ReadAllBytes(fullName);
+            var existingBytes = File.ReadAllBytes(renamed);
 
-            if (newHash != existingHash)
-                return;
+            for (var i = 0; i < newBytes.Length; i++)
+                if (newBytes[i] != existingBytes[i])
+                    return;
 
-            // replace the existing file as it has not changed
+            // restore the existing file as it has not changed
             DeleteFile(fullName);
             File.Move(renamed, fullName);
-        }
-
-        private string HashFile(string fileName)
-        {
-            using (var md5 = MD5.Create())
-            using (var stream = File.OpenRead(fileName))
-            {
-                var hash = md5.ComputeHash(stream);
-                return BitConverter.ToString(hash);
-            }
         }
 
         private void UsingArchive(string zipFile, Action<IDictionary<string, ZipArchiveEntry>, IList<string>> action)
