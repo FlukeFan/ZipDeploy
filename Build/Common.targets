@@ -5,7 +5,7 @@
 
   <PropertyGroup>
 
-    <Version>0.1</Version>
+    <Version>0.2.0</Version>
     <Description>Deploy updates to a running Asp.Net Core IIS application by uploading a zip file.</Description>
     <PackageTags>Asp.Net Core Mvc Zip Deploy IIS</PackageTags>
     <Authors>Richard Brown</Authors>
