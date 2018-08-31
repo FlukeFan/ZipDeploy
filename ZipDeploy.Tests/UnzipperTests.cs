@@ -89,16 +89,25 @@ namespace ZipDeploy.Tests
         [Test]
         public void Unzip_KeepsOriginalIfNoChanges()
         {
-            File.WriteAllText("binary.dll", "zipped content of binary.dll");
+            ExistingFiles();
+
+            CreateZip("publish.zip", @"binary.dll", @"nonbinary.txt");
+
+            var unzipper = NewUnzipper();
+            unzipper.UnzipBinaries();
+            unzipper.SyncNonBinaries();
 
             var existingModifiedDateTime = DateTime.UtcNow - TimeSpan.FromHours(3);
             File.SetLastWriteTimeUtc("binary.dll", existingModifiedDateTime);
+            File.SetLastWriteTimeUtc("nonbinary.txt", existingModifiedDateTime);
 
-            CreateZip("publish.zip", @"binary.dll");
+            CreateZip("publish.zip", @"binary.dll", @"nonbinary.txt");
 
-            NewUnzipper().UnzipBinaries();
+            unzipper.UnzipBinaries();
+            unzipper.SyncNonBinaries();
 
             File.GetLastWriteTimeUtc("binary.dll").Should().Be(existingModifiedDateTime);
+            File.GetLastWriteTimeUtc("nonbinary.txt").Should().Be(existingModifiedDateTime);
         }
 
         [Test]

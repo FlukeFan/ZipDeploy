@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading;
 using Microsoft.Extensions.Logging;
 
@@ -24,7 +25,7 @@ namespace ZipDeploy
             var config = (string)null;
             var zippedFiles = new List<string>();
 
-            UsingArchive("publish.zip", (entries, binariesWithoutExtension) =>
+            UsingArchive("publish.zip", (entries, binariesWithoutExtension, fileHashes) =>
             {
                 foreach (var entry in entries)
                 {
@@ -34,7 +35,7 @@ namespace ZipDeploy
                     if (!binariesWithoutExtension.Contains(PathWithoutExtension(fullName)))
                         continue;
 
-                    Extract(fullName, entry.Value);
+                    Extract(fullName, entry.Value, fileHashes);
                 }
 
                 if (entries.ContainsKey("web.config"))
@@ -69,7 +70,7 @@ namespace ZipDeploy
         {
             var zippedFiles = new List<string>();
 
-            UsingArchive("installing.zip", (entries, binariesWithoutExtension) =>
+            UsingArchive("installing.zip", (entries, binariesWithoutExtension, fileHashes) =>
             {
                 foreach (var entry in entries)
                 {
@@ -82,7 +83,7 @@ namespace ZipDeploy
                     if (fullName == "web.config")
                         continue;
 
-                    Extract(fullName, entry.Value);
+                    Extract(fullName, entry.Value, fileHashes);
                 }
             });
 
@@ -94,8 +95,25 @@ namespace ZipDeploy
             File.Move("installing.zip", "deployed.zip");
         }
 
-        private void Extract(string fullName, ZipArchiveEntry zipEntry)
+        private void Extract(string fullName, ZipArchiveEntry zipEntry, IDictionary<string, string> fileHashes)
         {
+            string fileHash = "";
+
+            using (var zipInput = zipEntry.Open())
+            using (var md5 = MD5.Create())
+            {
+                var fileHashBytes = md5.ComputeHash(zipInput);
+                fileHash = BitConverter.ToString(fileHashBytes);
+
+                if (fileHashes.ContainsKey(fullName) && fileHash == fileHashes[fullName])
+                {
+                    _log.LogDebug($"no changes detected - skipping {fullName}");
+                    return;
+                }
+
+                fileHashes[fullName] = fileHash;
+            }
+
             var renamed = RenameFile(fullName);
 
             var folder = Path.GetDirectoryName(fullName);
@@ -109,26 +127,9 @@ namespace ZipDeploy
                 _log.LogDebug($"extracting {fullName}");
                 zipInput.CopyTo(streamWriter);
             }
-
-            if (renamed == null)
-                return;
-
-            if (new FileInfo(fullName).Length != new FileInfo(renamed).Length)
-                return;
-
-            var newBytes = File.ReadAllBytes(fullName);
-            var existingBytes = File.ReadAllBytes(renamed);
-
-            for (var i = 0; i < newBytes.Length; i++)
-                if (newBytes[i] != existingBytes[i])
-                    return;
-
-            // restore the existing file as it has not changed
-            DeleteFile(fullName);
-            File.Move(renamed, fullName);
         }
 
-        private void UsingArchive(string zipFile, Action<IDictionary<string, ZipArchiveEntry>, IList<string>> action)
+        private void UsingArchive(string zipFile, Action<IDictionary<string, ZipArchiveEntry>, IList<string>, IDictionary<string, string>> action)
         {
             _log.LogDebug($"Opening {zipFile}");
 
@@ -146,7 +147,21 @@ namespace ZipDeploy
 
                 var binariesWithoutExtension = binaries.Select(binary => PathWithoutExtension(binary)).ToList();
 
-                action(entries, binariesWithoutExtension);
+                var fileHashes = new Dictionary<string, string>();
+
+                if (File.Exists("zipDeployFileHashes.txt"))
+                {
+                    fileHashes = File.ReadAllLines("zipDeployFileHashes.txt")
+                        .Select(l => l.Split('|'))
+                        .ToDictionary(a => a[0], a => a[1]);
+                }
+
+                action(entries, binariesWithoutExtension, fileHashes);
+
+                var hashesStrings = fileHashes
+                    .Select(kvp => $"{kvp.Key}|{kvp.Value}");
+
+                File.WriteAllLines("zipDeployFileHashes.txt", hashesStrings);
             }
         }
 
@@ -232,16 +247,17 @@ namespace ZipDeploy
         {
             var file = Path.GetFileName(forDeleteFile);
 
-            var knownZips = new List<string>
+            var knownFiles = new List<string>
             {
                 "publish.zip",
                 "installing.zip",
                 "deployed.zip",
+                "zipDeployFileHashes.txt",
             };
 
-            var isZip = knownZips.Contains(file);
+            var isKnownfile = knownFiles.Contains(file);
 
-            if (isZip)
+            if (isKnownfile)
                 return true;
 
             if (_options.PathsToIgnore.Any(p => NormalisePath(forDeleteFile).ToLower().StartsWith(NormalisePath(p.ToLower()))))
