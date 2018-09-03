@@ -71,11 +71,7 @@ namespace ZipDeploy
                 }
                 catch (Exception e)
                 {
-                    _log.LogError(e, $"Exception unzipping binaries - resetting to try again");
-
-                    // replace the state so we can try again
-                    _installState = State.FoundZip;
-                    StartWebRequest();
+                    _log.LogError(e, $"Exception unzipping binaries");
                     throw;
                 }
             });
