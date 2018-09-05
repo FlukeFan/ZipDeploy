@@ -51,11 +51,11 @@ namespace ZipDeploy
             if (File.Exists("installing.zip"))
             {
                 _log.LogDebug($"deleting existing installing.zip");
-                File.Delete("installing.zip");
+                DeleteFile("installing.zip");
             }
 
             _log.LogDebug($"renaming publish.zip to installing.zip");
-            File.Move("publish.zip", "installing.zip");
+            MoveFile("publish.zip", "installing.zip");
 
             if (!string.IsNullOrEmpty(config) || File.Exists("web.config"))
             {
@@ -90,9 +90,9 @@ namespace ZipDeploy
             DeleteObsoleteFiles(zippedFiles);
 
             if (File.Exists("deployed.zip"))
-                File.Delete("deployed.zip");
+                DeleteFile("deployed.zip");
 
-            File.Move("installing.zip", "deployed.zip");
+            MoveFile("installing.zip", "deployed.zip");
         }
 
         private void Extract(string fullName, ZipArchiveEntry zipEntry, IDictionary<string, string> fileHashes)
@@ -216,25 +216,39 @@ namespace ZipDeploy
             DeleteFile(destinationFile);
 
             _log.LogDebug($"renaming {file} to {destinationFile}");
-            File.Move(file, destinationFile);
+            MoveFile(file, destinationFile);
 
             return destinationFile;
         }
 
         private void DeleteFile(string file)
         {
+            Try(() => File.Delete(file),
+                () => File.Exists(file),
+                $"delete file {file}");
+        }
+
+        private void MoveFile(string file, string destinationFile)
+        {
+            Try(() => File.Move(file, destinationFile),
+                () => File.Exists(file),
+                $"moving file {file} to {destinationFile}");
+        }
+
+        private void Try(Action action, Func<bool> notComplete, string what)
+        {
             var count = 3;
 
-            while (File.Exists(file))
+            while (notComplete())
             {
                 try
                 {
-                    _log.LogDebug($"deleting existing {file}");
-                    File.Delete(file);
+                    _log.LogDebug(what);
+                    action();
                 }
                 catch (Exception e)
                 {
-                    _log.LogDebug(e, $"Error deleting {file}");
+                    _log.LogDebug(e, $"Error during {what}");
                     Thread.Sleep(0);
 
                     if (count-- <= 0)
