@@ -25,7 +25,7 @@ namespace ZipDeploy
             var config = (string)null;
             var zippedFiles = new List<string>();
 
-            UsingArchive("publish.zip", (entries, binariesWithoutExtension, fileHashes) =>
+            UsingArchive(_options.NewZipFileName, (entries, binariesWithoutExtension, fileHashes) =>
             {
                 foreach (var entry in entries)
                 {
@@ -48,19 +48,20 @@ namespace ZipDeploy
 
             RenameObsoleteBinaries(zippedFiles);
 
-            if (File.Exists("installing.zip"))
+            if (File.Exists(_options.TempZipFileName))
             {
-                _log.LogDebug($"deleting existing installing.zip");
-                DeleteFile("installing.zip");
+                _log.LogDebug($"deleting existing {_options.TempZipFileName}");
+                DeleteFile(_options.TempZipFileName);
             }
 
-            _log.LogDebug($"renaming publish.zip to installing.zip");
-            MoveFile("publish.zip", "installing.zip");
+            _log.LogDebug($"renaming {_options.NewZipFileName} to {_options.TempZipFileName}");
+            MoveFile(_options.NewZipFileName, _options.TempZipFileName);
 
             if (!string.IsNullOrEmpty(config) || File.Exists("web.config"))
             {
                 _log.LogDebug("Triggering restart by touching web.config");
                 config = config ?? File.ReadAllText("web.config");
+                config = _options.ProcessWebConfig(config);
                 File.WriteAllText("web.config", config);
                 File.SetLastWriteTimeUtc("web.config", File.GetLastWriteTimeUtc("web.config") + TimeSpan.FromSeconds(1));
             }
@@ -70,7 +71,7 @@ namespace ZipDeploy
         {
             var zippedFiles = new List<string>();
 
-            UsingArchive("installing.zip", (entries, binariesWithoutExtension, fileHashes) =>
+            UsingArchive(_options.TempZipFileName, (entries, binariesWithoutExtension, fileHashes) =>
             {
                 foreach (var entry in entries)
                 {
@@ -89,10 +90,10 @@ namespace ZipDeploy
 
             DeleteObsoleteFiles(zippedFiles);
 
-            if (File.Exists("deployed.zip"))
-                DeleteFile("deployed.zip");
+            if (File.Exists(_options.DeployedZipFileName))
+                DeleteFile(_options.DeployedZipFileName);
 
-            MoveFile("installing.zip", "deployed.zip");
+            MoveFile(_options.TempZipFileName, _options.DeployedZipFileName);
         }
 
         private void Extract(string fullName, ZipArchiveEntry zipEntry, IDictionary<string, string> fileHashes)
@@ -149,9 +150,9 @@ namespace ZipDeploy
 
                 var fileHashes = new Dictionary<string, string>();
 
-                if (File.Exists("zipDeployFileHashes.txt"))
+                if (File.Exists(_options.HashesFileName))
                 {
-                    fileHashes = File.ReadAllLines("zipDeployFileHashes.txt")
+                    fileHashes = File.ReadAllLines(_options.HashesFileName)
                         .Select(l => l.Split('|'))
                         .ToDictionary(a => a[0], a => a[1]);
                 }
@@ -161,7 +162,7 @@ namespace ZipDeploy
                 var hashesStrings = fileHashes
                     .Select(kvp => $"{kvp.Key}|{kvp.Value}");
 
-                File.WriteAllLines("zipDeployFileHashes.txt", hashesStrings);
+                File.WriteAllLines(_options.HashesFileName, hashesStrings);
             }
         }
 
@@ -263,10 +264,10 @@ namespace ZipDeploy
 
             var knownFiles = new List<string>
             {
-                "publish.zip",
-                "installing.zip",
-                "deployed.zip",
-                "zipDeployFileHashes.txt",
+                _options.NewZipFileName,
+                _options.TempZipFileName,
+                _options.DeployedZipFileName,
+                _options.HashesFileName,
             };
 
             var isKnownfile = knownFiles.Contains(file);

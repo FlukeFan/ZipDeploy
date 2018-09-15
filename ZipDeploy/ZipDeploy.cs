@@ -33,7 +33,14 @@ namespace ZipDeploy
             _next = next;
             _options = options;
 
-            _log.LogInformation($"ZipDeploy started [IisUrl={_options.IisUrl}] [IgnoredPaths={string.Join(", ", _options.PathsToIgnore)}] [UserDomainName={Environment.UserDomainName}] [UserName={Environment.UserName}]");
+            _log.LogInformation($"ZipDeploy started "
+                + $"[IisUrl={_options.IisUrl}] "
+                + $"[NewZipFileName={_options.NewZipFileName}] "
+                + $"[TempZipFileName={_options.TempZipFileName}] "
+                + $"[DeployedZipFileName={_options.DeployedZipFileName}] "
+                + $"[HashesFileName={_options.HashesFileName}] "
+                + $"[IgnoredPaths={string.Join(", ", _options.PathsToIgnore)}] "
+                + $"[UserDomainName={Environment.UserDomainName}] [UserName={Environment.UserName}]");
 
             CompleteInstallation();
 
@@ -86,9 +93,9 @@ namespace ZipDeploy
 
         private void CompleteInstallation()
         {
-            if (File.Exists("installing.zip"))
+            if (File.Exists(_options.TempZipFileName))
             {
-                _log.LogDebug("detected installing.zip; completing installation");
+                _log.LogDebug($"detected {_options.TempZipFileName}; completing installation");
 
                 var unzipper = new Unzipper(_options);
                 unzipper.SyncNonBinaries();
@@ -97,12 +104,12 @@ namespace ZipDeploy
 
         private void StartWatchingForInstaller()
         {
-            _fsw = new FileSystemWatcher(Environment.CurrentDirectory, "publish.zip");
+            _fsw = new FileSystemWatcher(Environment.CurrentDirectory, _options.NewZipFileName);
             _fsw.Created += ZipFileChange;
             _fsw.Changed += ZipFileChange;
             _fsw.Renamed += ZipFileChange;
             _fsw.EnableRaisingEvents = true;
-            _log.LogInformation($"Watching for publish.zip in {Environment.CurrentDirectory}");
+            _log.LogInformation($"Watching for {_options.NewZipFileName} in {Environment.CurrentDirectory}");
         }
 
         private void ZipFileChange(object sender, FileSystemEventArgs e)
@@ -133,7 +140,7 @@ namespace ZipDeploy
 
         private bool NewZipFileExists()
         {
-            return File.Exists("publish.zip");
+            return File.Exists(_options.NewZipFileName);
         }
 
         private void StartWebRequest()
