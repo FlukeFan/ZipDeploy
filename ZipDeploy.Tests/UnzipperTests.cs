@@ -257,7 +257,9 @@ namespace ZipDeploy.Tests
                 .UseNewZipFileName(ZipDeployOptions.DefaultNewZipFileName)
                 .UseTempZipFileName(ZipDeployOptions.DefaultTempZipFileName)
                 .UseDeployedZipFileName(ZipDeployOptions.DefaultDeployedZipFileName)
-                .UseHashesFileName(ZipDeployOptions.DefaultHashesFileName);
+                .UseHashesFileName(ZipDeployOptions.DefaultHashesFileName)
+                .UseIsBinary(ZipDeployOptions.DefaultIsBinary)
+                .UseProcessWebConfig(ZipDeployOptions.DefaultProcessWebConfig);
 
             configure?.Invoke(options);
             return new Unzipper(options);

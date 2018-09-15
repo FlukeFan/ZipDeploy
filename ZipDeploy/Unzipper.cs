@@ -141,7 +141,7 @@ namespace ZipDeploy
                     .ToDictionary(zfe => zfe.FullName, zfe => zfe);
 
                 var binaries = entries.Keys
-                    .Where(k => IsBinary(k))
+                    .Where(k => _options.IsBinary(k))
                     .ToList();
 
                 _log.LogDebug($"{binaries.Count} binaries (dlls) in zip");
@@ -166,12 +166,6 @@ namespace ZipDeploy
             }
         }
 
-        private bool IsBinary(string file)
-        {
-            var extension = Path.GetExtension(file)?.ToLower();
-            return new string[] { ".dll", ".exe" }.Contains(extension);
-        }
-
         public static string PathWithoutExtension(string file)
         {
             var extension = Path.GetExtension(file);
@@ -188,7 +182,7 @@ namespace ZipDeploy
         private void RenameObsoleteBinaries(IList<string> zippedFiles)
         {
             foreach (var fullName in Directory.GetFiles(".", "*", SearchOption.AllDirectories).Select(f => NormalisePath(f)))
-                if (IsBinary(fullName) && !zippedFiles.Contains(fullName) && !ShouldIgnore(fullName))
+                if (_options.IsBinary(fullName) && !zippedFiles.Contains(fullName) && !ShouldIgnore(fullName))
                     RenameFile(fullName);
         }
 

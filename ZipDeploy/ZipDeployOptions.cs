@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 
 namespace ZipDeploy
 {
@@ -16,12 +18,20 @@ namespace ZipDeploy
         public string               DeployedZipFileName { get; protected set; } = DefaultDeployedZipFileName;
         public string               HashesFileName      { get; protected set; } = DefaultHashesFileName;
         public IList<string>        PathsToIgnore       { get; protected set; } = new List<string>();
+        public Func<string, bool>   IsBinary            { get; protected set; } = DefaultIsBinary;
         public Func<string, string> ProcessWebConfig    { get; protected set; } = DefaultProcessWebConfig;
 
         /// <summary>Default implementation is to return the web.config content unchanged</summary>
         public static string DefaultProcessWebConfig(string beforeConfig)
         {
             return beforeConfig;
+        }
+
+        /// <summary>Default implementation is to return true if the extension is .dll or .exe</summary>
+        public static bool DefaultIsBinary(string file)
+        {
+            var extension = Path.GetExtension(file)?.ToLower();
+            return new string[] { ".dll", ".exe" }.Contains(extension);
         }
 
         /// <summary>Specify the IIS (not Kestrel) URL that is used to make a request to the application</summary>
@@ -63,6 +73,13 @@ namespace ZipDeploy
         public ZipDeployOptions UseHashesFileName(string hashesFileName)
         {
             HashesFileName = hashesFileName;
+            return this;
+        }
+
+        /// <summary>Specify custom function to determine binary files (which are processed before restart of web application)</summary>
+        public ZipDeployOptions UseIsBinary(Func<string, bool> isBinary)
+        {
+            IsBinary = isBinary;
             return this;
         }
 
