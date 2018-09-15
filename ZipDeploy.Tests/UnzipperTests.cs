@@ -47,6 +47,18 @@ namespace ZipDeploy.Tests
         }
 
         [Test]
+        public void Unzip_CanSpecifyCustomBinaryDependencies()
+        {
+            ExistingFiles("binary1.dll");
+
+            CreateZip(ZipDeployOptions.DefaultNewZipFileName, "binary1.dll", "log.config");
+
+            NewUnzipper(opt => opt.UseIsBinary(f => ZipDeployOptions.DefaultIsBinary(f) || Path.GetFileName(f) == "log.config")).UnzipBinaries();
+
+            File.ReadAllText("log.config").Should().Be("zipped content of log.config");
+        }
+
+        [Test]
         public void Unzip_ExistingMarkedDeleteFilesAreOverwritten()
         {
             var expectedContent = "existing content of binary.dll";
