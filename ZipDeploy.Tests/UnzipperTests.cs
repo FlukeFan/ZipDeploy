@@ -49,13 +49,16 @@ namespace ZipDeploy.Tests
         [Test]
         public void Unzip_CanSpecifyCustomBinaryDependencies()
         {
-            ExistingFiles("binary1.dll");
+            ExistingFiles("log.dll", "log.config", "mylog.config");
 
-            CreateZip(ZipDeployOptions.DefaultNewZipFileName, "binary1.dll", "log.config");
+            CreateZip(ZipDeployOptions.DefaultNewZipFileName, "log.dll", "log.config", "mylog.config");
 
-            NewUnzipper(opt => opt.UseIsBinary(f => ZipDeployOptions.DefaultIsBinary(f) || Path.GetFileName(f) == "log.config")).UnzipBinaries();
+            NewUnzipper(opt => opt.UseIsBinary(f => ZipDeployOptions.DefaultIsBinary(f) || Path.GetFileName(f) == "mylog.config")).UnzipBinaries();
 
             File.ReadAllText("log.config").Should().Be("zipped content of log.config");
+            File.ReadAllText("zzz__log.config.fordelete.txt").Should().Be("existing content of log.config");
+            File.ReadAllText("mylog.config").Should().Be("zipped content of mylog.config");
+            File.ReadAllText("zzz__mylog.config.fordelete.txt").Should().Be("existing content of mylog.config");
         }
 
         [Test]

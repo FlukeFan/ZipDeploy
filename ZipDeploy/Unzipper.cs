@@ -49,12 +49,8 @@ namespace ZipDeploy
             RenameObsoleteBinaries(zippedFiles);
 
             if (File.Exists(_options.TempZipFileName))
-            {
-                _log.LogDebug($"deleting existing {_options.TempZipFileName}");
                 DeleteFile(_options.TempZipFileName);
-            }
 
-            _log.LogDebug($"renaming {_options.NewZipFileName} to {_options.TempZipFileName}");
             MoveFile(_options.NewZipFileName, _options.TempZipFileName);
 
             if (!string.IsNullOrEmpty(config) || File.Exists("web.config"))
@@ -210,7 +206,6 @@ namespace ZipDeploy
 
             DeleteFile(destinationFile);
 
-            _log.LogDebug($"renaming {file} to {destinationFile}");
             MoveFile(file, destinationFile);
 
             return destinationFile;
