@@ -66,13 +66,8 @@ namespace ZipDeploy.Tests.TestApp
             // the binaries have been replaced, and the web.config should have been touched
             // the next request should complete the installation, and return the new responses
 
-            IisAdmin.ShowLogOnFail(iisFolder, () =>
-            {
-                Wait.Until("site should not return old value", () => !Get("http://localhost:8099").Contains("123"));
-
-                Get("http://localhost:8099").Should().Contain("Version=234");
-                Get("http://localhost:8099/test.js").Should().Contain("alert(234);");
-            });
+            Get("http://localhost:8099/test.js").Should().Contain("alert(234);");
+            Get("http://localhost:8099").Should().Contain("Version=234");
 
             File.Exists(Path.Combine(iisFolder, ZipDeployOptions.DefaultNewZipFileName)).Should().BeFalse("publish.zip should have been renamed to installing.zip");
             File.Exists(Path.Combine(iisFolder, ZipDeployOptions.DefaultTempZipFileName)).Should().BeFalse("installing.zip should have been renamed to deployed.zip");
