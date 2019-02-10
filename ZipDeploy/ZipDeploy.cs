@@ -72,13 +72,15 @@ namespace ZipDeploy
                     InstallBinaries();
 
                     lock(_stateLock)
-                    {
                         _installState = State.AwaitingRestart;
-                    }
                 }
                 catch (Exception e)
                 {
                     _log.LogError(e, $"Exception unzipping binaries");
+
+                    lock (_stateLock)
+                        _installState = State.FoundZip;
+
                     throw;
                 }
             });
