@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.27130.2020
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29806.167
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZipDeploy", "ZipDeploy\ZipDeploy.csproj", "{C97D2221-483F-4C0C-A96F-621226C1494C}"
 EndProject
@@ -12,6 +12,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "root", "root", "{DC38B5AE-6
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
 		CommandPrompt.bat = CommandPrompt.bat
+		global.json = global.json
 		NuGet.Config = NuGet.Config
 		readme.md = readme.md
 	EndProjectSection
