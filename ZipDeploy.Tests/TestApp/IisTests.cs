@@ -11,7 +11,22 @@ namespace ZipDeploy.Tests.TestApp
     {
         [Test]
         [Test.IsSlow]
-        public void DeployZip()
+        public void DeployZip20()
+        {
+            DeployZip(new DeployZipOptions
+            {
+                AppSourceFolder = "ZipDeploy.TestApp",
+                AppPublishFolder = @"bin\Debug\netcoreapp2.0\publish",
+            });
+        }
+
+        private class DeployZipOptions
+        {
+            public string AppSourceFolder;
+            public string AppPublishFolder;
+        }
+
+        private void DeployZip(DeployZipOptions options)
         {
             IisAdmin.DeleteIisSite();
 
@@ -26,12 +41,12 @@ namespace ZipDeploy.Tests.TestApp
             FileSystem.DeleteFolder(srcCopyFolder);
             FileSystem.CopySource(slnFolder, srcCopyFolder, "Build");
             FileSystem.CopySource(slnFolder, srcCopyFolder, "ZipDeploy");
-            FileSystem.CopySource(slnFolder, srcCopyFolder, "ZipDeploy.TestApp");
+            FileSystem.CopySource(slnFolder, srcCopyFolder, options.AppSourceFolder);
 
-            var testAppfolder = Path.Combine(srcCopyFolder, "ZipDeploy.TestApp");
+            var testAppfolder = Path.Combine(srcCopyFolder, options.AppSourceFolder);
             Exec.DotnetPublish(testAppfolder);
 
-            var publishFolder = Path.Combine(testAppfolder, @"bin\Debug\netcoreapp2.0\publish");
+            var publishFolder = Path.Combine(testAppfolder, options.AppPublishFolder);
             var iisFolder = Path.Combine(outputFolder, "IisSite");
 
             FileSystem.DeleteFolder(iisFolder);
@@ -42,7 +57,7 @@ namespace ZipDeploy.Tests.TestApp
             Get("http://localhost:8099").Should().Contain("Version=123");
             Get("http://localhost:8099/test.js").Should().Contain("alert(123);");
 
-            FileSystem.CopySource(slnFolder, srcCopyFolder, "ZipDeploy.TestApp");
+            FileSystem.CopySource(slnFolder, srcCopyFolder, options.AppSourceFolder);
             FileSystem.ReplaceText(testAppfolder, @"HomeController.cs", "private const int c_version = 123;", "private const int c_version = 234;");
             FileSystem.ReplaceText(testAppfolder, @"wwwroot\test.js", "alert(123);", "alert(234);");
             Exec.DotnetPublish(testAppfolder);
