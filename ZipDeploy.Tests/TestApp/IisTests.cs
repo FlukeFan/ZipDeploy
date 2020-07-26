@@ -13,6 +13,8 @@ namespace ZipDeploy.Tests.TestApp
         [Test.IsSlow]
         public void DeployZip21()
         {
+            IisAdmin.VerifyModuleInstalled(moduleName: "AspNetCoreModule");
+
             DeployZip(new DeployZipOptions
             {
                 ExpectedRuntimeVersion = "2.1",

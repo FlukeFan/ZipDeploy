@@ -26,6 +26,23 @@ namespace ZipDeploy.Tests.TestApp
             }
         }
 
+        public static void VerifyModuleInstalled(string moduleName)
+        {
+            using (var iisManager = new ServerManager())
+            {
+                var globalModulesList = iisManager.GetApplicationHostConfiguration()
+                .GetSection("system.webServer/globalModules")
+                .GetCollection();
+
+                var globalModules = globalModulesList.Select(m => m.Attributes["name"].Value.ToString()).ToList();
+
+                if (globalModules.Contains(moduleName))
+                    return;
+
+                globalModules.Should().Contain(moduleName);
+            }
+        }
+
         public static void CreateIisSite(string iisFolder)
         {
             var sec = new DirectorySecurity(iisFolder, AccessControlSections.Access);
@@ -38,14 +55,6 @@ namespace ZipDeploy.Tests.TestApp
 
             using (var iisManager = new ServerManager())
             {
-                var globalModulesList = iisManager.GetApplicationHostConfiguration()
-                    .GetSection("system.webServer/globalModules")
-                    .GetCollection();
-
-                var globalModules = globalModulesList.Select(m => m.Attributes["name"].Value.ToString()).ToList();
-                globalModules.Should().Contain("AspNetCoreModule");
-                globalModules.Should().Contain("AspNetCoreModuleV2");
-
                 DeleteIisSite(iisManager);
 
                 var pool = iisManager.ApplicationPools.Add(c_iisName);
