@@ -15,7 +15,7 @@ namespace ZipDeploy.Tests.TestApp
         {
             IisAdmin.VerifyModuleInstalled(
                 moduleName: "AspNetCoreModule",
-                downloadUrl: "https://download.microsoft.com/download/6/E/B/6EBD972D-2E2F-41EB-9668-F73F5FDDC09C/aspnetcore-runtime-2.1.3-win-x64.exe");
+                downloadUrl: "https://download.microsoft.com/download/6/E/B/6EBD972D-2E2F-41EB-9668-F73F5FDDC09C/dotnet-hosting-2.1.3-win.exe");
 
             DeployZip(new DeployZipOptions
             {
