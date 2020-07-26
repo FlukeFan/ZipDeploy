@@ -37,12 +37,14 @@ namespace ZipDeploy.Tests.TestApp
 
             using (var iisManager = new ServerManager())
             {
-                var siteCount = iisManager.Sites.Count(s => s.Name == c_iisName);
+                DeleteIisSite(iisManager);
 
-                if (siteCount > 0)
-                    DeleteIisSite(iisManager);
+                var pool = iisManager.ApplicationPools.Add(c_iisName);
+                pool.ProcessModel.IdentityType = ProcessModelIdentityType.NetworkService;
 
-                iisManager.Sites.Add("ZipDeployTestApp", iisFolder, c_iisPort);
+                var site = iisManager.Sites.Add("ZipDeployTestApp", iisFolder, c_iisPort);
+                site.ApplicationDefaults.ApplicationPoolName = pool.Name;
+
                 iisManager.CommitChanges();
 
                 Test.WriteProgress($"Created IIS site {c_iisName}:{c_iisPort} in {iisFolder}");
@@ -53,7 +55,15 @@ namespace ZipDeploy.Tests.TestApp
         {
             using (var iisManager = new ServerManager())
             {
-                DeleteIisSite(iisManager);
+                var siteCount = iisManager.Sites.Count(s => s.Name == c_iisName);
+
+                if (siteCount > 0)
+                    DeleteIisSite(iisManager);
+
+                var poolCount = iisManager.ApplicationPools.Count(p => p.Name == c_iisName);
+
+                if (poolCount > 0)
+                    DeleteIisPool(iisManager);
             }
         }
 
@@ -67,6 +77,18 @@ namespace ZipDeploy.Tests.TestApp
             iisManager.Sites.Remove(site);
             iisManager.CommitChanges();
             Test.WriteProgress($"Removed IIS site {c_iisName}");
+        }
+
+        private static void DeleteIisPool(ServerManager iisManager)
+        {
+            var pool = iisManager.ApplicationPools.SingleOrDefault(s => s.Name == c_iisName);
+
+            if (pool == null)
+                return;
+
+            iisManager.ApplicationPools.Remove(pool);
+            iisManager.CommitChanges();
+            Test.WriteProgress($"Removed IIS pool {c_iisName}");
         }
     }
 }
