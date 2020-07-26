@@ -22,7 +22,7 @@ namespace ZipDeploy.Tests.TestApp
 
         public static void DotnetPublish(string workingDir)
         {
-            Cmd(workingDir, "dotnet.exe", "publish");
+            Cmd(workingDir, "dotnet.exe", "publish --self-contained --runtime win-x64");
         }
     }
 }
