@@ -17,7 +17,7 @@ namespace ZipDeploy.Tests.TestApp
             {
                 ExpectedRuntimeVersion = "2.1",
                 AppSourceFolder = "ZipDeploy.TestApp",
-                AppPublishFolder = @"bin\Debug\netcoreapp2.1\publish",
+                AppPublishFolder = @"bin\Debug\netcoreapp2.1\win-x64\publish",
             });
         }
 

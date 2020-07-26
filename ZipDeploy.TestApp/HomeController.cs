@@ -1,6 +1,6 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Reflection;
+using System.Runtime.Versioning;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ZipDeploy.TestApp
@@ -21,15 +21,16 @@ namespace ZipDeploy.TestApp
             return Content(runtimeVersion);
         }
 
-        // https://stackoverflow.com/a/49309382/357728
+        // https://weblog.west-wind.com/posts/2018/Apr/12/Getting-the-NET-Core-Runtime-Version-in-a-Running-Application
         public static string GetNetCoreVersion()
         {
-            var assembly = typeof(System.Runtime.GCSettings).GetTypeInfo().Assembly;
-            var assemblyPath = assembly.CodeBase.Split(new[] { '/', '\\' }, StringSplitOptions.RemoveEmptyEntries);
-            int netCoreAppIndex = Array.IndexOf(assemblyPath, "Microsoft.NETCore.App");
-            if (netCoreAppIndex > 0 && netCoreAppIndex < assemblyPath.Length - 2)
-                return assemblyPath[netCoreAppIndex + 1];
-            return null;
+            var fullVersion = Assembly
+                .GetEntryAssembly()?
+                .GetCustomAttribute<TargetFrameworkAttribute>()?
+                .FrameworkName;
+
+            var versionNumber = fullVersion.Split('=')[1];
+            return versionNumber.TrimStart('v');
         }
     }
 }
