@@ -11,17 +11,19 @@ namespace ZipDeploy.Tests.TestApp
     {
         [Test]
         [Test.IsSlow]
-        public void DeployZip20()
+        public void DeployZip21()
         {
             DeployZip(new DeployZipOptions
             {
+                ExpectedRuntimeVersion = "2.1",
                 AppSourceFolder = "ZipDeploy.TestApp",
-                AppPublishFolder = @"bin\Debug\netcoreapp2.0\publish",
+                AppPublishFolder = @"bin\Debug\netcoreapp2.1\publish",
             });
         }
 
         private class DeployZipOptions
         {
+            public string ExpectedRuntimeVersion;
             public string AppSourceFolder;
             public string AppPublishFolder;
         }
@@ -54,6 +56,7 @@ namespace ZipDeploy.Tests.TestApp
 
             IisAdmin.CreateIisSite(iisFolder);
 
+            Get("http://localhost:8099/home/runtime").Should().Be(options.ExpectedRuntimeVersion);
             Get("http://localhost:8099").Should().Contain("Version=123");
             Get("http://localhost:8099/test.js").Should().Contain("alert(123);");
 
