@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Security.AccessControl;
 using System.Security.Principal;
-using FluentAssertions;
 using Microsoft.Web.Administration;
 
 namespace ZipDeploy.Tests.TestApp
@@ -26,7 +26,7 @@ namespace ZipDeploy.Tests.TestApp
             }
         }
 
-        public static void VerifyModuleInstalled(string moduleName)
+        public static void VerifyModuleInstalled(string moduleName, string downloadUrl)
         {
             using (var iisManager = new ServerManager())
             {
@@ -39,7 +39,14 @@ namespace ZipDeploy.Tests.TestApp
                 if (globalModules.Contains(moduleName))
                     return;
 
-                globalModules.Should().Contain(moduleName);
+                Test.WriteProgress($"Downloading {downloadUrl}");
+                var filename = Path.GetFileName(downloadUrl);
+
+                if (!File.Exists(filename))
+                    new WebClient().DownloadFile(downloadUrl, filename);
+
+                Test.WriteProgress($"Executing {filename} /install /quiet /norestart");
+                Exec.Cmd("", filename, "/install /quiet /norestart");
             }
         }
 
