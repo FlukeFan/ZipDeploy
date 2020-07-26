@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Security.AccessControl;
 using System.Security.Principal;
+using FluentAssertions;
 using Microsoft.Web.Administration;
 
 namespace ZipDeploy.Tests.TestApp
@@ -37,6 +38,14 @@ namespace ZipDeploy.Tests.TestApp
 
             using (var iisManager = new ServerManager())
             {
+                var globalModulesList = iisManager.GetApplicationHostConfiguration()
+                    .GetSection("system.webServer/globalModules")
+                    .GetCollection();
+
+                var globalModules = globalModulesList.Select(m => m.Attributes["name"].Value.ToString()).ToList();
+                globalModules.Should().Contain("AspNetCoreModule");
+                globalModules.Should().Contain("AspNetCoreModuleV2");
+
                 DeleteIisSite(iisManager);
 
                 var pool = iisManager.ApplicationPools.Add(c_iisName);
