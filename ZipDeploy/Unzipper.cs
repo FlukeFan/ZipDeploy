@@ -16,7 +16,7 @@ namespace ZipDeploy
 
         public Unzipper(ZipDeployOptions options)
         {
-            _log = ZipDeploy.LogFactory.CreateLogger<Unzipper>();
+            _log = ZipDeploy.LoggerFactory.CreateLogger<Unzipper>();
             _options = options;
         }
 

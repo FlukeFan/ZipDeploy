@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using NLog;
+using NLog.Extensions.Logging;
 using NLog.Web;
 
 namespace ZipDeploy.TestApp
@@ -11,7 +12,12 @@ namespace ZipDeploy.TestApp
         {
             LogManager.ThrowExceptions = true;
             NLogBuilder.ConfigureNLog("nlog.config").GetCurrentClassLogger().Info("Logging configured");
-            BuildWebHost(args).Run();
+
+            ZipDeploy.LoggerFactory.AddNLog();
+
+            ZipDeploy.Run(
+                _ => { },
+                () => BuildWebHost(args).Run());
         }
 
         public static IWebHost BuildWebHost(string[] args) =>

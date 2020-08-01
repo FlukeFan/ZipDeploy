@@ -7,8 +7,39 @@ using Microsoft.Extensions.Logging;
 
 namespace ZipDeploy
 {
-    public class ZipDeploy : IDisposable
+    public class ZipDeploy
     {
+        private static ILogger<ZipDeploy> _logger;
+
+        public static void Run(Action<ZipDeployOptions> setupOptions, Action program)
+        {
+            try
+            {
+                LoggerFactory = LoggerFactory ?? new LoggerFactory();
+                _logger = LoggerFactory.CreateLogger<ZipDeploy>();
+
+                _logger.LogDebug("ZipDeploy starting");
+
+                // DefaultOptions()
+
+                // IDetectInstaller -> ITriggerRestart
+                // DeleteForDeleteFiles();
+                
+                // if (!filesToUnzip)
+                    program();
+            }
+            finally
+            {
+                // RenameBinaries
+                // Unzip
+            }
+        }
+
+        public static ZipDeployOptions DefaultOptions()
+        {
+            return new ZipDeployOptions();
+        }
+
         private enum State
         {
             Idle,
@@ -17,7 +48,7 @@ namespace ZipDeploy
             AwaitingRestart,
         }
 
-        public static ILoggerFactory LogFactory;
+        public static ILoggerFactory LoggerFactory = new LoggerFactory();
 
         private object              _stateLock      = new object();
         private State               _installState;
@@ -26,10 +57,9 @@ namespace ZipDeploy
         private RequestDelegate     _next;
         private ZipDeployOptions    _options;
 
-        public ZipDeploy(RequestDelegate next, ILoggerFactory logFactory, ZipDeployOptions options)
+        public ZipDeploy(RequestDelegate next, ZipDeployOptions options)
         {
-            LogFactory = logFactory;
-            _log = logFactory.CreateLogger<ZipDeploy>();
+            _log = LoggerFactory.CreateLogger<ZipDeploy>();
             _next = next;
             _options = options;
 

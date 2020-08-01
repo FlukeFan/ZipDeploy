@@ -16,7 +16,7 @@ namespace ZipDeploy.Tests
         [SetUp]
         public void SetUp()
         {
-            ZipDeploy.LogFactory = new LoggerFactory();
+            ZipDeploy.LoggerFactory = new LoggerFactory();
 
             _filesFolder = Path.Combine(Test.GetOutputFolder(), "testFiles");
             FileSystem.DeleteFolder(_filesFolder);

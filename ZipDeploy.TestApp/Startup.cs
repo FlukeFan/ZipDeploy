@@ -23,9 +23,6 @@ namespace ZipDeploy.TestApp
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            app.UseZipDeploy(options => options
-                .UseIisUrl("http://localhost:8099"));
-
             app.UseDeveloperExceptionPage();
 
             app.UseStaticFiles();
