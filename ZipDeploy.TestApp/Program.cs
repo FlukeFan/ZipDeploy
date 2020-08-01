@@ -1,17 +1,29 @@
 ﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using NLog;
+using NLog.Common;
+using NLog.Config;
 using NLog.Extensions.Logging;
+using NLog.Targets;
 using NLog.Web;
 
 namespace ZipDeploy.TestApp
 {
-    public class Program
+    public static class Program
     {
         public static void Main(string[] args)
         {
+            InternalLogger.LogFile = "logs\\nlog.internal.log";
+            InternalLogger.LogLevel = LogLevel.Info;
+
             LogManager.ThrowExceptions = true;
-            NLogBuilder.ConfigureNLog("nlog.config").GetCurrentClassLogger().Info("Logging configured");
+            var config = new LoggingConfiguration();
+            var logFile = new FileTarget("fileTarget") { FileName = "logs\\nlog.log" };
+            config.AddTarget(logFile);
+            config.AddRule(LogLevel.Trace, LogLevel.Fatal, logFile);
+
+            LogManager.ThrowExceptions = true;
+            LogManager.Configuration = config;
 
             ZipDeploy.LoggerFactory.AddNLog();
 
