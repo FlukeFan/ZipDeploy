@@ -49,6 +49,7 @@ namespace ZipDeploy.Tests.TestApp
             FileSystem.CopySource(slnFolder, srcCopyFolder, "Build");
             FileSystem.CopySource(slnFolder, srcCopyFolder, "ZipDeploy");
             FileSystem.CopySource(slnFolder, srcCopyFolder, options.AppSourceFolder);
+            File.Copy(Path.Combine(slnFolder, "icon.png"), Path.Combine(srcCopyFolder, "icon.png"));
 
             var testAppfolder = Path.Combine(srcCopyFolder, options.AppSourceFolder);
             Exec.DotnetPublish(testAppfolder);
