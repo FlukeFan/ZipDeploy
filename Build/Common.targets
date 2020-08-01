@@ -9,9 +9,9 @@
     <Description>Deploy updates to a running Asp.Net Core IIS application by uploading a zip file.</Description>
     <PackageTags>Asp.Net Core Mvc Zip Deploy IIS</PackageTags>
     <Authors>Richard Brown</Authors>
-    <PackageLicenseUrl>https://raw.githubusercontent.com/FlukeFan/ZipDeploy/master/LICENSE.txt</PackageLicenseUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageIcon>icon.png</PackageIcon>
     <PackageProjectUrl>https://github.com/FlukeFan/ZipDeploy</PackageProjectUrl>
-    <PackageIconUrl>https://raw.githubusercontent.com/FlukeFan/ZipDeploy/master/icon.png</PackageIconUrl>
 
     <CoverageTarget Condition="'$(CoverageTarget)'==''">90</CoverageTarget>
 

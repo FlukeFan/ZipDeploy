@@ -13,7 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "root", "root", "{DC38B5AE-6
 		.gitignore = .gitignore
 		CommandPrompt.bat = CommandPrompt.bat
 		global.json = global.json
-		NuGet.Config = NuGet.Config
+		LICENSE.txt = LICENSE.txt
 		readme.md = readme.md
 	EndProjectSection
 EndProject
