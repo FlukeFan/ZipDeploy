@@ -15,7 +15,7 @@
 
     <CoverageTarget Condition="'$(CoverageTarget)'==''">90</CoverageTarget>
 
-    <OpenCoverExe>$(NuGetPackageRoot)\opencover\4.6.519\tools\OpenCover.Console.exe</OpenCoverExe>
+    <OpenCoverExe>$(NuGetPackageRoot)\opencover\4.7.922\tools\OpenCover.Console.exe</OpenCoverExe>
     <VsTestConsole>$(MSBuildExtensionsPath)vstest.console.dll</VsTestConsole>
     <NUnitConsole>$(NuGetPackageRoot)\nunit.consolerunner\3.11.1\tools\nunit3-console.exe</NUnitConsole>
     <ReportGeneratorExe>$(NuGetPackageRoot)\reportgenerator\4.6.2\tools\netcoreapp3.0\ReportGenerator.exe</ReportGeneratorExe>
