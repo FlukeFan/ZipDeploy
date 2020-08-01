@@ -17,7 +17,7 @@
 
     <OpenCoverExe>$(NuGetPackageRoot)\opencover\4.6.519\tools\OpenCover.Console.exe</OpenCoverExe>
     <VsTestConsole>$(MSBuildExtensionsPath)vstest.console.dll</VsTestConsole>
-    <NUnitConsole>$(NuGetPackageRoot)\nunit.consolerunner\3.7.0\tools\nunit3-console.exe</NUnitConsole>
+    <NUnitConsole>$(NuGetPackageRoot)\nunit.consolerunner\3.11.1\tools\nunit3-console.exe</NUnitConsole>
     <ReportGeneratorExe>$(NuGetPackageRoot)\reportgenerator\3.1.1\tools\ReportGenerator.exe</ReportGeneratorExe>
 
     <Asterisk>%2A</Asterisk>
