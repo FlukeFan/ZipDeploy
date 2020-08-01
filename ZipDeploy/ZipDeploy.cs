@@ -32,6 +32,7 @@ namespace ZipDeploy
             {
                 // RenameBinaries
                 // Unzip
+                _logger.LogDebug("ZipDeploy completed after process shutdown");
             }
         }
 
