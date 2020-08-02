@@ -7,12 +7,14 @@ namespace ZipDeploy
 {
     public class ZipDeployOptions
     {
+        public const string DefaultWatchFilter          = "publish.zip";
         public const string DefaultNewZipFileName       = "publish.zip";
         public const string DefaultTempZipFileName      = "installing.zip";
         public const string DefaultDeployedZipFileName  = "deployed.zip";
         public const string DefaultHashesFileName       = "zipDeployFileHashes.txt";
 
         public string               IisUrl              { get; protected set; }
+        public string               WatchFilter         { get; protected set; } = DefaultWatchFilter;
         public string               NewZipFileName      { get; protected set; } = DefaultNewZipFileName;
         public string               TempZipFileName     { get; protected set; } = DefaultTempZipFileName;
         public string               DeployedZipFileName { get; protected set; } = DefaultDeployedZipFileName;
@@ -20,6 +22,13 @@ namespace ZipDeploy
         public IList<string>        PathsToIgnore       { get; protected set; } = new List<string>();
         public Func<string, bool>   IsBinary            { get; protected set; } = DefaultIsBinary;
         public Func<string, string> ProcessWebConfig    { get; protected set; } = DefaultProcessWebConfig;
+
+        public IWatchForPackage WatchForPackage;
+
+        public IWatchForPackage NewWatchForPackage()
+        {
+            return new WatchForPackage(NewZipFileName);
+        }
 
         /// <summary>Default implementation is to return the web.config content unchanged</summary>
         public static string DefaultProcessWebConfig(string beforeConfig)

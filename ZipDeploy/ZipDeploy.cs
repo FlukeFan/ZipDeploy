@@ -20,6 +20,11 @@ namespace ZipDeploy
 
                 _logger.LogDebug("ZipDeploy starting");
 
+                var options = new ZipDeployOptions();
+                setupOptions?.Invoke(options);
+
+                options.WatchForPackage = options.WatchForPackage ?? options.NewWatchForPackage();
+
                 // DefaultOptions()
 
                 // IDetectInstaller -> ITriggerRestart
