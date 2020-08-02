@@ -23,9 +23,7 @@ namespace ZipDeploy
                 var options = new ZipDeployOptions();
                 setupOptions?.Invoke(options);
 
-                options.WatchForPackage = options.WatchForPackage ?? options.NewWatchForPackage();
-
-                // DefaultOptions()
+                options.DetectPackage = options.DetectPackage ?? options.NewDetectPackage();
 
                 // IDetectInstaller -> ITriggerRestart
                 // DeleteForDeleteFiles();

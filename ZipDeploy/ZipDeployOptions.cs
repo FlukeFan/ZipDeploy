@@ -13,6 +13,11 @@ namespace ZipDeploy
         public const string DefaultDeployedZipFileName  = "deployed.zip";
         public const string DefaultHashesFileName       = "zipDeployFileHashes.txt";
 
+        public ZipDeployOptions()
+        {
+            NewDetectPackage = DefaultNewDetectPackage;
+        }
+
         public string               IisUrl              { get; protected set; }
         public string               WatchFilter         { get; protected set; } = DefaultWatchFilter;
         public string               NewZipFileName      { get; protected set; } = DefaultNewZipFileName;
@@ -23,12 +28,10 @@ namespace ZipDeploy
         public Func<string, bool>   IsBinary            { get; protected set; } = DefaultIsBinary;
         public Func<string, string> ProcessWebConfig    { get; protected set; } = DefaultProcessWebConfig;
 
-        public IWatchForPackage WatchForPackage;
+        public IDetectPackage DetectPackage;
+        public Func<IDetectPackage> NewDetectPackage;
 
-        public IWatchForPackage NewWatchForPackage()
-        {
-            return new WatchForPackage(NewZipFileName);
-        }
+        public IDetectPackage DefaultNewDetectPackage() { return new DetectPackage(WatchFilter); }
 
         /// <summary>Default implementation is to return the web.config content unchanged</summary>
         public static string DefaultProcessWebConfig(string beforeConfig)
