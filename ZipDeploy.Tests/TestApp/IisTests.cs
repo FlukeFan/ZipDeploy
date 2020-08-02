@@ -77,7 +77,7 @@ namespace ZipDeploy.Tests.TestApp
             var configFile = Path.Combine(iisFolder, "web.config");
             var lastConfigChange = File.GetLastWriteTimeUtc(configFile);
 
-            var publishZip = Path.Combine(iisFolder, ZipDeployOptions.DefaultNewZipFileName);
+            var publishZip = Path.Combine(iisFolder, ZipDeployOptions.DefaultNewPackageFileName);
             File.Move(uploadingZip, publishZip);
 
             IisAdmin.ShowLogOnFail(iisFolder, () =>
@@ -93,9 +93,8 @@ namespace ZipDeploy.Tests.TestApp
             Get("http://localhost:8099/test.js").Should().Contain("alert(234);");
             Get("http://localhost:8099").Should().Contain("Version=234");
 
-            File.Exists(Path.Combine(iisFolder, ZipDeployOptions.DefaultNewZipFileName)).Should().BeFalse("publish.zip should have been renamed to installing.zip");
-            File.Exists(Path.Combine(iisFolder, ZipDeployOptions.DefaultTempZipFileName)).Should().BeFalse("installing.zip should have been renamed to deployed.zip");
-            File.Exists(Path.Combine(iisFolder, ZipDeployOptions.DefaultDeployedZipFileName)).Should().BeTrue("deployment should be complete, and installing.zip should have been renamed to deployed.zip");
+            File.Exists(Path.Combine(iisFolder, ZipDeployOptions.DefaultNewPackageFileName)).Should().BeFalse("publish.zip should have been renamed to deployed.zip");
+            File.Exists(Path.Combine(iisFolder, ZipDeployOptions.DefaultDeployedPackageFileName)).Should().BeTrue("deployment should be complete, and publish.zip should have been renamed to deployed.zip");
 
             IisAdmin.DeleteIisSite();
         }

@@ -36,7 +36,7 @@ namespace ZipDeploy.Tests
         {
             ExistingFiles("binary1.dll", "binary2.exe");
 
-            CreateZip(ZipDeployOptions.DefaultNewZipFileName, "binary1.dll", "binary2.exe");
+            CreateZip(ZipDeployOptions.DefaultNewPackageFileName, "binary1.dll", "binary2.exe");
 
             NewUnzipper().UnzipBinaries();
 
@@ -51,7 +51,7 @@ namespace ZipDeploy.Tests
         {
             ExistingFiles("log.dll", "log.config", "mylog.config");
 
-            CreateZip(ZipDeployOptions.DefaultNewZipFileName, "log.dll", "log.config", "mylog.config");
+            CreateZip(ZipDeployOptions.DefaultNewPackageFileName, "log.dll", "log.config", "mylog.config");
 
             NewUnzipper(opt => opt.UseIsBinary(f => ZipDeployOptions.DefaultIsBinary(f) || Path.GetFileName(f) == "mylog.config")).UnzipBinaries();
 
@@ -70,7 +70,7 @@ namespace ZipDeploy.Tests
 
             File.ReadAllText("zzz__binary.dll.fordelete.txt").Should().NotBe(expectedContent);
 
-            CreateZip(ZipDeployOptions.DefaultNewZipFileName, @"binary.dll");
+            CreateZip(ZipDeployOptions.DefaultNewPackageFileName, @"binary.dll");
 
             NewUnzipper().UnzipBinaries();
 
@@ -82,7 +82,7 @@ namespace ZipDeploy.Tests
         {
             ExistingFiles("web.config");
 
-            CreateZip(ZipDeployOptions.DefaultNewZipFileName, @"web.config");
+            CreateZip(ZipDeployOptions.DefaultNewPackageFileName, @"web.config");
 
             NewUnzipper().UnzipBinaries();
 
@@ -94,7 +94,7 @@ namespace ZipDeploy.Tests
         {
             ExistingFiles();
 
-            CreateZip(ZipDeployOptions.DefaultNewZipFileName, @"wwwroot\lib\jQuery.js");
+            CreateZip(ZipDeployOptions.DefaultNewPackageFileName, @"wwwroot\lib\jQuery.js");
 
             NewUnzipper().UnzipBinaries();
 
@@ -106,7 +106,7 @@ namespace ZipDeploy.Tests
         {
             ExistingFiles();
 
-            CreateZip(ZipDeployOptions.DefaultNewZipFileName, @"binary.dll", @"nonbinary.txt");
+            CreateZip(ZipDeployOptions.DefaultNewPackageFileName, @"binary.dll", @"nonbinary.txt");
 
             var unzipper = NewUnzipper();
             unzipper.UnzipBinaries();
@@ -116,7 +116,7 @@ namespace ZipDeploy.Tests
             File.SetLastWriteTimeUtc("binary.dll", existingModifiedDateTime);
             File.SetLastWriteTimeUtc("nonbinary.txt", existingModifiedDateTime);
 
-            CreateZip(ZipDeployOptions.DefaultNewZipFileName, @"binary.dll", @"nonbinary.txt");
+            CreateZip(ZipDeployOptions.DefaultNewPackageFileName, @"binary.dll", @"nonbinary.txt");
 
             unzipper.UnzipBinaries();
             unzipper.SyncNonBinaries();
@@ -128,15 +128,15 @@ namespace ZipDeploy.Tests
         [Test]
         public void Unzip_OverwritesExistingUnzippedArchive()
         {
-            ExistingFiles(ZipDeployOptions.DefaultTempZipFileName);
+            ExistingFiles(ZipDeployOptions.DefaultLegacyTempFileName);
 
-            CreateZip(ZipDeployOptions.DefaultNewZipFileName);
+            CreateZip(ZipDeployOptions.DefaultNewPackageFileName);
 
             NewUnzipper().UnzipBinaries();
 
-            File.Exists(ZipDeployOptions.DefaultNewZipFileName).Should().BeFalse("publish.zip should have been renamed");
-            File.Exists(ZipDeployOptions.DefaultTempZipFileName).Should().BeTrue("publish.zip should have been renamed to installing.zip");
-            File.ReadAllText(ZipDeployOptions.DefaultTempZipFileName).Should().NotBe("existing content of installing.zip", "previous installing.zip should have been overwritten");
+            File.Exists(ZipDeployOptions.DefaultNewPackageFileName).Should().BeFalse("publish.zip should have been renamed");
+            File.Exists(ZipDeployOptions.DefaultLegacyTempFileName).Should().BeTrue("publish.zip should have been renamed to installing.zip");
+            File.ReadAllText(ZipDeployOptions.DefaultLegacyTempFileName).Should().NotBe("existing content of installing.zip", "previous installing.zip should have been overwritten");
         }
 
         [Test]
@@ -144,7 +144,7 @@ namespace ZipDeploy.Tests
         {
             ExistingFiles("file1.dll", "legacy.dll");
 
-            CreateZip(ZipDeployOptions.DefaultNewZipFileName, "file1.dll");
+            CreateZip(ZipDeployOptions.DefaultNewPackageFileName, "file1.dll");
 
             NewUnzipper().UnzipBinaries();
 
@@ -157,17 +157,17 @@ namespace ZipDeploy.Tests
         {
             var previousContent = "existing content of deployed.zip";
 
-            ExistingFiles(ZipDeployOptions.DefaultDeployedZipFileName);
+            ExistingFiles(ZipDeployOptions.DefaultDeployedPackageFileName);
 
-            File.ReadAllText(ZipDeployOptions.DefaultDeployedZipFileName).Should().Be(previousContent);
+            File.ReadAllText(ZipDeployOptions.DefaultDeployedPackageFileName).Should().Be(previousContent);
 
-            CreateZip(ZipDeployOptions.DefaultTempZipFileName);
+            CreateZip(ZipDeployOptions.DefaultLegacyTempFileName);
 
             NewUnzipper().SyncNonBinaries();
 
-            File.Exists(ZipDeployOptions.DefaultTempZipFileName).Should().BeFalse("installing.zip should have been renamed");
-            File.Exists(ZipDeployOptions.DefaultDeployedZipFileName).Should().BeTrue("installing should have been renamed to deployed.zip");
-            File.ReadAllText(ZipDeployOptions.DefaultDeployedZipFileName).Should().NotBe(previousContent);
+            File.Exists(ZipDeployOptions.DefaultLegacyTempFileName).Should().BeFalse("installing.zip should have been renamed");
+            File.Exists(ZipDeployOptions.DefaultDeployedPackageFileName).Should().BeTrue("installing should have been renamed to deployed.zip");
+            File.ReadAllText(ZipDeployOptions.DefaultDeployedPackageFileName).Should().NotBe(previousContent);
         }
 
         [Test]
@@ -179,7 +179,7 @@ namespace ZipDeploy.Tests
                 @"wwwroot\legacy.txt",
                 @"wwwroot\zzz__new.txt.fordelete.txt");
 
-            CreateZip(ZipDeployOptions.DefaultTempZipFileName, "new.dll", @"wwwroot\new.txt");
+            CreateZip(ZipDeployOptions.DefaultLegacyTempFileName, "new.dll", @"wwwroot\new.txt");
 
             NewUnzipper().SyncNonBinaries();
 
@@ -193,7 +193,7 @@ namespace ZipDeploy.Tests
         {
             ExistingFiles("fresh.dll", "web.config");
 
-            CreateZip(ZipDeployOptions.DefaultTempZipFileName, "fresh.dll", "web.config");
+            CreateZip(ZipDeployOptions.DefaultLegacyTempFileName, "fresh.dll", "web.config");
 
             NewUnzipper().SyncNonBinaries();
 
@@ -206,7 +206,7 @@ namespace ZipDeploy.Tests
         {
             ExistingFiles(@"wwwroot\file1.txt");
 
-            CreateZip(ZipDeployOptions.DefaultTempZipFileName,
+            CreateZip(ZipDeployOptions.DefaultLegacyTempFileName,
                 @"file1.dll",
                 @"wwwroot\file1.txt",
                 @"wwwroot\file2.txt");
@@ -222,7 +222,7 @@ namespace ZipDeploy.Tests
         {
             ExistingFiles("file.txt", "file.dll");
 
-            CreateZip(ZipDeployOptions.DefaultNewZipFileName, "FILE.TXT", "FILE.DLL");
+            CreateZip(ZipDeployOptions.DefaultNewPackageFileName, "FILE.TXT", "FILE.DLL");
 
             var unzipper = NewUnzipper();
             unzipper.UnzipBinaries();
@@ -241,7 +241,7 @@ namespace ZipDeploy.Tests
                 "uploads//sub/file2.dll",
                 "uploads2\\subfolder\\file3.txt");
 
-            CreateZip(ZipDeployOptions.DefaultNewZipFileName, "file1.txt");
+            CreateZip(ZipDeployOptions.DefaultNewPackageFileName, "file1.txt");
 
             var unzipper = NewUnzipper(opt => opt
                 .IgnorePathStarting("log.txt")
@@ -268,13 +268,7 @@ namespace ZipDeploy.Tests
 
         private Unzipper NewUnzipper(Action<ZipDeployOptions> configure = null)
         {
-            var options = new ZipDeployOptions()
-                .UseNewZipFileName(ZipDeployOptions.DefaultNewZipFileName)
-                .UseTempZipFileName(ZipDeployOptions.DefaultTempZipFileName)
-                .UseDeployedZipFileName(ZipDeployOptions.DefaultDeployedZipFileName)
-                .UseHashesFileName(ZipDeployOptions.DefaultHashesFileName)
-                .UseIsBinary(ZipDeployOptions.DefaultIsBinary)
-                .UseProcessWebConfig(ZipDeployOptions.DefaultProcessWebConfig);
+            var options = new ZipDeployOptions();
 
             configure?.Invoke(options);
             return new Unzipper(options);

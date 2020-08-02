@@ -56,7 +56,6 @@ namespace ZipDeploy
 
         private object              _stateLock      = new object();
         private State               _installState;
-        private FileSystemWatcher   _fsw;
         private ILogger<ZipDeploy>  _log;
         private RequestDelegate     _next;
         private ZipDeployOptions    _options;
@@ -69,18 +68,18 @@ namespace ZipDeploy
 
             _log.LogInformation($"ZipDeploy started "
                 + $"[IisUrl={_options.IisUrl}] "
-                + $"[NewZipFileName={_options.NewZipFileName}] "
-                + $"[TempZipFileName={_options.TempZipFileName}] "
-                + $"[DeployedZipFileName={_options.DeployedZipFileName}] "
+                + $"[NewPackageFileName={_options.NewPackageFileName}] "
+                + $"[LegacyTempFileName={_options.LegacyTempFileName}] "
+                + $"[DeployedPackageFileName={_options.DeployedPackageFileName}] "
                 + $"[HashesFileName={_options.HashesFileName}] "
                 + $"[IgnoredPaths={string.Join(", ", _options.PathsToIgnore)}] "
                 + $"[UserDomainName={Environment.UserDomainName}] [UserName={Environment.UserName}]");
 
-            CompleteInstallation();
+            //CompleteInstallation();
 
             _installState = State.Idle;
 
-            StartWatchingForInstaller();
+            //StartWatchingForInstaller();
             DetectInstaller();
         }
 
@@ -127,31 +126,16 @@ namespace ZipDeploy
             unzipper.UnzipBinaries();
         }
 
-        private void CompleteInstallation()
-        {
-            if (File.Exists(_options.TempZipFileName))
-            {
-                _log.LogDebug($"detected {_options.TempZipFileName}; completing installation");
+        //private void CompleteInstallation()
+        //{
+        //    if (File.Exists(_options.TempZipFileName))
+        //    {
+        //        _log.LogDebug($"detected {_options.TempZipFileName}; completing installation");
 
-                var unzipper = new Unzipper(_options);
-                unzipper.SyncNonBinaries();
-            }
-        }
-
-        private void StartWatchingForInstaller()
-        {
-            _fsw = new FileSystemWatcher(Environment.CurrentDirectory, _options.NewZipFileName);
-            _fsw.Created += ZipFileChange;
-            _fsw.Changed += ZipFileChange;
-            _fsw.Renamed += ZipFileChange;
-            _fsw.EnableRaisingEvents = true;
-            _log.LogInformation($"Watching for {_options.NewZipFileName} in {Environment.CurrentDirectory}");
-        }
-
-        private void ZipFileChange(object sender, FileSystemEventArgs e)
-        {
-            _log.LogAndSwallowException("ZipFileChange", DetectInstaller);
-        }
+        //        var unzipper = new Unzipper(_options);
+        //        unzipper.SyncNonBinaries();
+        //    }
+        //}
 
         private void DetectInstaller()
         {
@@ -176,7 +160,7 @@ namespace ZipDeploy
 
         private bool NewZipFileExists()
         {
-            return File.Exists(_options.NewZipFileName);
+            return File.Exists(_options.NewPackageFileName);
         }
 
         private void StartWebRequest()
@@ -191,12 +175,6 @@ namespace ZipDeploy
                 using (client.GetAsync(_options.IisUrl).GetAwaiter().GetResult())
                 { }
             }));
-        }
-
-        public void Dispose()
-        {
-            using (_fsw)
-                _fsw.EnableRaisingEvents = false;
         }
     }
 }

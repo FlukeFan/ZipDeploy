@@ -25,7 +25,7 @@ namespace ZipDeploy
             var config = (string)null;
             var zippedFiles = new List<string>();
 
-            UsingArchive(_options.NewZipFileName, (entries, binariesWithoutExtension, fileHashes) =>
+            UsingArchive(_options.NewPackageFileName, (entries, binariesWithoutExtension, fileHashes) =>
             {
                 foreach (var entry in entries)
                 {
@@ -48,10 +48,10 @@ namespace ZipDeploy
 
             RenameObsoleteBinaries(zippedFiles);
 
-            if (File.Exists(_options.TempZipFileName))
-                DeleteFile(_options.TempZipFileName);
+            if (File.Exists(_options.LegacyTempFileName))
+                DeleteFile(_options.LegacyTempFileName);
 
-            MoveFile(_options.NewZipFileName, _options.TempZipFileName);
+            MoveFile(_options.NewPackageFileName, _options.LegacyTempFileName);
 
             if (!string.IsNullOrEmpty(config) || File.Exists("web.config"))
             {
@@ -67,7 +67,7 @@ namespace ZipDeploy
         {
             var zippedFiles = new List<string>();
 
-            UsingArchive(_options.TempZipFileName, (entries, binariesWithoutExtension, fileHashes) =>
+            UsingArchive(_options.LegacyTempFileName, (entries, binariesWithoutExtension, fileHashes) =>
             {
                 foreach (var entry in entries)
                 {
@@ -86,10 +86,10 @@ namespace ZipDeploy
 
             DeleteObsoleteFiles(zippedFiles);
 
-            if (File.Exists(_options.DeployedZipFileName))
-                DeleteFile(_options.DeployedZipFileName);
+            if (File.Exists(_options.DeployedPackageFileName))
+                DeleteFile(_options.DeployedPackageFileName);
 
-            MoveFile(_options.TempZipFileName, _options.DeployedZipFileName);
+            MoveFile(_options.LegacyTempFileName, _options.DeployedPackageFileName);
         }
 
         private void Extract(string fullName, ZipArchiveEntry zipEntry, IDictionary<string, string> fileHashes)
@@ -253,9 +253,9 @@ namespace ZipDeploy
 
             var knownFiles = new List<string>
             {
-                _options.NewZipFileName,
-                _options.TempZipFileName,
-                _options.DeployedZipFileName,
+                _options.NewPackageFileName,
+                _options.LegacyTempFileName,
+                _options.DeployedPackageFileName,
                 _options.HashesFileName,
             };
 
