@@ -66,6 +66,7 @@ namespace ZipDeploy.Tests.TestApp
 
                 var pool = iisManager.ApplicationPools.Add(c_iisName);
                 pool.ProcessModel.IdentityType = ProcessModelIdentityType.NetworkService;
+                pool.Recycling.DisallowOverlappingRotation = true;
 
                 var site = iisManager.Sites.Add("ZipDeployTestApp", iisFolder, c_iisPort);
                 site.ApplicationDefaults.ApplicationPoolName = pool.Name;
