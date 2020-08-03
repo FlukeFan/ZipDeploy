@@ -12,6 +12,7 @@ namespace ZipDeploy
         public static void Run(Action<ZipDeployOptions> setupOptions, Action program)
         {
             var options = new ZipDeployOptions();
+            var context = new ZipContext();
 
             LoggerFactory = LoggerFactory ?? new LoggerFactory();
             _logger = LoggerFactory.CreateLogger<ZipDeploy>();
@@ -23,9 +24,13 @@ namespace ZipDeploy
 
                 var detectPackage = options.DetectPackage = options.DetectPackage ?? options.NewDetectPackage();
                 var triggerRestart = options.TriggerRestart ?? options.NewTriggerRestart();
-                options.QueryPackageName = options.QueryPackageName ?? options.NewQueryPackageName();
+                var queryPackageName = options.QueryPackageName = options.QueryPackageName ?? options.NewQueryPackageName();
 
-                detectPackage.PackageDetected += () => triggerRestart.Trigger();
+                detectPackage.PackageDetected += () =>
+                {
+                    context.SetPackageName(queryPackageName.FindPackageName());
+                    triggerRestart.Trigger(context);
+                };
 
                 // DeleteForDeleteFiles();
                 
@@ -34,20 +39,21 @@ namespace ZipDeploy
             }
             finally
             {
-                _logger.Try("ZipDeploy before shutdown", () =>
-                {
-                    var packageName = options.QueryPackageName.FindPackageName();
-
-                    if (packageName != null)
+                using (context)
+                    _logger.Try("ZipDeploy before shutdown", () =>
                     {
-                        _logger.LogDebug("Found package {packageName}", packageName);
-                        var unzipper = new Unzipper(options);
-                        unzipper.UnzipBinaries();
-                        unzipper.SyncNonBinaries(deleteObsolete: false);
-                    }
+                        var packageName = options.QueryPackageName.FindPackageName();
 
-                    _logger.LogDebug("ZipDeploy completed after process shutdown");
-                });
+                        if (packageName != null)
+                        {
+                            _logger.LogDebug("Found package {packageName}", packageName);
+                            var unzipper = new Unzipper(options);
+                            unzipper.UnzipBinaries();
+                            unzipper.SyncNonBinaries(deleteObsolete: false);
+                        }
+
+                        _logger.LogDebug("ZipDeploy completed after process shutdown");
+                    });
             }
         }
 

@@ -6,7 +6,7 @@ namespace ZipDeploy
 {
     public interface ITriggerRestart
     {
-        void Trigger();
+        void Trigger(ZipContext zipContext);
     }
 
     public class AspNetRestart : ITriggerRestart
@@ -18,7 +18,7 @@ namespace ZipDeploy
             _logger = ZipDeploy.LoggerFactory.CreateLogger<AspNetRestart>();
         }
 
-        public void Trigger()
+        public void Trigger(ZipContext zipContext)
         {
             if (File.Exists("web.config"))
             {
