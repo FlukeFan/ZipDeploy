@@ -1,5 +1,10 @@
 
-[![Build Status](https://ci.appveyor.com/api/projects/status/github/FlukeFan/ZipDeploy?svg=true)](https://ci.appveyor.com/project/FlukeFan/ZipDeploy) <pre>
+[![Build Status](https://ci.appveyor.com/api/projects/status/github/FlukeFan/ZipDeploy?svg=true)](https://ci.appveyor.com/project/FlukeFan/ZipDeploy) 
+
+[![NuGet Badge](https://buildstats.info/nuget/zipdeploy)](https://www.nuget.org/packages/zipdeploy/)
+
+<pre>
+
 
 ZipDeploy
 =========
