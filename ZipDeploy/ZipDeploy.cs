@@ -13,18 +13,19 @@ namespace ZipDeploy
 
         public static void Run(Action<ZipDeployOptions> setupOptions, Action program)
         {
+            var options = new ZipDeployOptions();
+
+            LoggerFactory = LoggerFactory ?? new LoggerFactory();
+            _logger = LoggerFactory.CreateLogger<ZipDeploy>();
+            _logger.LogDebug("ZipDeploy starting");
+
             try
             {
-                LoggerFactory = LoggerFactory ?? new LoggerFactory();
-                _logger = LoggerFactory.CreateLogger<ZipDeploy>();
-
-                _logger.LogDebug("ZipDeploy starting");
-
-                var options = new ZipDeployOptions();
                 setupOptions?.Invoke(options);
 
                 var detectPackage = options.DetectPackage = options.DetectPackage ?? options.NewDetectPackage();
                 var triggerRestart = options.TriggerRestart ?? options.NewTriggerRestart();
+                options.QueryPackageName = options.QueryPackageName ?? options.NewQueryPackageName();
 
                 detectPackage.PackageDetected += () => triggerRestart.Trigger();
 
@@ -35,6 +36,14 @@ namespace ZipDeploy
             }
             finally
             {
+                var packageName = options.QueryPackageName.FindPackageName();
+
+                if (packageName != null)
+                {
+                    _logger.LogDebug("Found package {packageName}", packageName);
+                    File.Move(packageName, options.DeployedPackageFileName);
+                }
+
                 // RenameBinaries
                 // Unzip
                 _logger.LogDebug("ZipDeploy completed after process shutdown");
