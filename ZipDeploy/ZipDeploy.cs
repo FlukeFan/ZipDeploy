@@ -23,6 +23,9 @@ namespace ZipDeploy
             {
                 setupOptions?.Invoke(options);
 
+                if (File.Exists(options.LegacyTempFileName))
+                    new Unzipper(options).SyncNonBinaries();
+
                 var detectPackage = options.DetectPackage = options.DetectPackage ?? options.NewDetectPackage();
                 var triggerRestart = options.TriggerRestart ?? options.NewTriggerRestart();
                 options.QueryPackageName = options.QueryPackageName ?? options.NewQueryPackageName();
@@ -41,7 +44,8 @@ namespace ZipDeploy
                 if (packageName != null)
                 {
                     _logger.LogDebug("Found package {packageName}", packageName);
-                    File.Move(packageName, options.DeployedPackageFileName);
+                    var unzipper = new Unzipper(options);
+                    unzipper.UnzipBinaries();
                 }
 
                 // RenameBinaries
