@@ -63,7 +63,7 @@ namespace ZipDeploy
             }
         }
 
-        public void SyncNonBinaries()
+        public void SyncNonBinaries(bool deleteObsolete = true)
         {
             var zippedFiles = new List<string>();
 
@@ -84,7 +84,8 @@ namespace ZipDeploy
                 }
             });
 
-            DeleteObsoleteFiles(zippedFiles);
+            if (deleteObsolete)
+                DeleteObsoleteFiles(zippedFiles);
 
             if (File.Exists(_options.DeployedPackageFileName))
                 DeleteFile(_options.DeployedPackageFileName);

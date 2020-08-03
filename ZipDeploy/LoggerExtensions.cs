@@ -15,7 +15,7 @@ namespace ZipDeploy
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error during {description}", description);
+                logger.LogError(ex, "Error during {description}: {error}", description, ex?.ToString());
                 throw;
             }
         }

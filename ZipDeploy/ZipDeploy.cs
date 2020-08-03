@@ -23,9 +23,6 @@ namespace ZipDeploy
             {
                 setupOptions?.Invoke(options);
 
-                if (File.Exists(options.LegacyTempFileName))
-                    new Unzipper(options).SyncNonBinaries();
-
                 var detectPackage = options.DetectPackage = options.DetectPackage ?? options.NewDetectPackage();
                 var triggerRestart = options.TriggerRestart ?? options.NewTriggerRestart();
                 options.QueryPackageName = options.QueryPackageName ?? options.NewQueryPackageName();
@@ -39,18 +36,20 @@ namespace ZipDeploy
             }
             finally
             {
-                var packageName = options.QueryPackageName.FindPackageName();
-
-                if (packageName != null)
+                _logger.Try("ZipDeploy before shutdown", () =>
                 {
-                    _logger.LogDebug("Found package {packageName}", packageName);
-                    var unzipper = new Unzipper(options);
-                    unzipper.UnzipBinaries();
-                }
+                    var packageName = options.QueryPackageName.FindPackageName();
 
-                // RenameBinaries
-                // Unzip
-                _logger.LogDebug("ZipDeploy completed after process shutdown");
+                    if (packageName != null)
+                    {
+                        _logger.LogDebug("Found package {packageName}", packageName);
+                        var unzipper = new Unzipper(options);
+                        unzipper.UnzipBinaries();
+                        unzipper.SyncNonBinaries(deleteObsolete: false);
+                    }
+
+                    _logger.LogDebug("ZipDeploy completed after process shutdown");
+                });
             }
         }
 
