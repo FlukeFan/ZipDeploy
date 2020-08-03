@@ -16,6 +16,7 @@ namespace ZipDeploy
         public ZipDeployOptions()
         {
             NewDetectPackage = DefaultNewDetectPackage;
+            NewTriggerRestart = DefaultNewTriggerRestart;
         }
 
         public string               IisUrl                  { get; protected set; }
@@ -32,6 +33,11 @@ namespace ZipDeploy
         public Func<IDetectPackage> NewDetectPackage;
 
         public IDetectPackage DefaultNewDetectPackage() { return new DetectPackage(WatchFilter); }
+
+        public ITriggerRestart TriggerRestart;
+        public Func<ITriggerRestart> NewTriggerRestart;
+
+        public ITriggerRestart DefaultNewTriggerRestart() { return new AspNetRestart(); }
 
         /// <summary>Default implementation is to return the web.config content unchanged</summary>
         public static string DefaultProcessWebConfig(string beforeConfig)

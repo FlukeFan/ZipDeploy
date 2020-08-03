@@ -23,9 +23,11 @@ namespace ZipDeploy
                 var options = new ZipDeployOptions();
                 setupOptions?.Invoke(options);
 
-                options.DetectPackage = options.DetectPackage ?? options.NewDetectPackage();
+                var detectPackage = options.DetectPackage = options.DetectPackage ?? options.NewDetectPackage();
+                var triggerRestart = options.TriggerRestart ?? options.NewTriggerRestart();
 
-                // IDetectInstaller -> ITriggerRestart
+                detectPackage.PackageDetected += () => triggerRestart.Trigger();
+
                 // DeleteForDeleteFiles();
                 
                 // if (!filesToUnzip)
