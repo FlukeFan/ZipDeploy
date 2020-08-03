@@ -1,7 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Net.Http;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
@@ -97,42 +95,6 @@ namespace ZipDeploy
             DetectInstaller();
         }
 
-        public async Task Invoke(HttpContext context)
-        {
-            await _next(context);
-
-            if (_installState != State.FoundZip)
-                return;
-
-            _log.LogAndSwallowException("ZipDeploy.Invoke - installerDetected", () =>
-            {
-                try
-                {
-                    lock(_stateLock)
-                    {
-                        if (_installState != State.FoundZip)
-                            return;
-
-                        _installState = State.UnzippingBinaries;
-                    }
-
-                    InstallBinaries();
-
-                    lock(_stateLock)
-                        _installState = State.AwaitingRestart;
-                }
-                catch (Exception e)
-                {
-                    _log.LogError(e, $"Exception unzipping binaries");
-
-                    lock (_stateLock)
-                        _installState = State.FoundZip;
-
-                    throw;
-                }
-            });
-        }
-
         private void InstallBinaries()
         {
             _log.LogDebug("Installing binaries (and renaming old ones)");
@@ -167,28 +129,11 @@ namespace ZipDeploy
                     _installState = State.FoundZip;
                 }
             }
-
-            if (_installState == State.FoundZip)
-                StartWebRequest();
         }
 
         private bool NewZipFileExists()
         {
             return File.Exists(_options.NewPackageFileName);
-        }
-
-        private void StartWebRequest()
-        {
-            if (string.IsNullOrWhiteSpace(_options.IisUrl))
-                return;
-
-            Task.Run(() => Handler.LogAndSwallowException(_log, "CallIis", () =>
-            {
-                _log.LogDebug($"Making request to IIS: {_options.IisUrl}");
-                using (var client = new HttpClient())
-                using (client.GetAsync(_options.IisUrl).GetAwaiter().GetResult())
-                { }
-            }));
         }
     }
 }
