@@ -20,7 +20,6 @@ namespace ZipDeploy
             NewQueryPackageName = DefaultNewQueryPackageName;
         }
 
-        public string               IisUrl                  { get; protected set; }
         public string               WatchFilter             { get; protected set; } = DefaultWatchFilter;
         public string               NewPackageFileName      { get; protected set; } = DefaultNewPackageFileName;
         public string               LegacyTempFileName      { get; protected set; } = DefaultLegacyTempFileName;
@@ -32,17 +31,14 @@ namespace ZipDeploy
 
         public IDetectPackage DetectPackage;
         public Func<IDetectPackage> NewDetectPackage;
-
         public IDetectPackage DefaultNewDetectPackage() { return new DetectPackage(WatchFilter); }
 
         public ITriggerRestart TriggerRestart;
         public Func<ITriggerRestart> NewTriggerRestart;
-
         public ITriggerRestart DefaultNewTriggerRestart() { return new AspNetRestart(); }
 
         public IQueryPackageName QueryPackageName;
         public Func<IQueryPackageName> NewQueryPackageName;
-
         public IQueryPackageName DefaultNewQueryPackageName() { return new QueryPackageName(); }
 
         /// <summary>Default implementation is to return the web.config content unchanged</summary>
