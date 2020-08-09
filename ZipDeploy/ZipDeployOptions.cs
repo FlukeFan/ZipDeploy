@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ZipDeploy
 {
@@ -15,11 +16,13 @@ namespace ZipDeploy
 
         public ZipDeployOptions()
         {
-            NewDetectPackage = DefaultNewDetectPackage;
-            NewTriggerRestart = DefaultNewTriggerRestart;
-            NewQueryPackageName = DefaultNewQueryPackageName;
+            ServiceCollection.AddSingleton(this);
+            ServiceCollection.AddSingleton<IDetectPackage, DetectPackage>();
+            ServiceCollection.AddSingleton<ITriggerRestart, AspNetRestart>();
+            ServiceCollection.AddSingleton<IQueryPackageName, QueryPackageName>();
         }
 
+        public IServiceCollection   ServiceCollection       { get; protected set; } = new ServiceCollection();
         public string               WatchFilter             { get; protected set; } = DefaultWatchFilter;
         public string               NewPackageFileName      { get; protected set; } = DefaultNewPackageFileName;
         public string               LegacyTempFileName      { get; protected set; } = DefaultLegacyTempFileName;
@@ -28,18 +31,6 @@ namespace ZipDeploy
         public IList<string>        PathsToIgnore           { get; protected set; } = new List<string>();
         public Func<string, bool>   IsBinary                { get; protected set; } = DefaultIsBinary;
         public Func<string, string> ProcessWebConfig        { get; protected set; } = DefaultProcessWebConfig;
-
-        public IDetectPackage DetectPackage;
-        public Func<IDetectPackage> NewDetectPackage;
-        public IDetectPackage DefaultNewDetectPackage() { return new DetectPackage(WatchFilter); }
-
-        public ITriggerRestart TriggerRestart;
-        public Func<ITriggerRestart> NewTriggerRestart;
-        public ITriggerRestart DefaultNewTriggerRestart() { return new AspNetRestart(); }
-
-        public IQueryPackageName QueryPackageName;
-        public Func<IQueryPackageName> NewQueryPackageName;
-        public IQueryPackageName DefaultNewQueryPackageName() { return new QueryPackageName(); }
 
         /// <summary>Default implementation is to return the web.config content unchanged</summary>
         public static string DefaultProcessWebConfig(string beforeConfig)

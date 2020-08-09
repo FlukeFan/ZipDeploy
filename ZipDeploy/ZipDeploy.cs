@@ -1,4 +1,5 @@
 ﻿using System;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace ZipDeploy
@@ -14,6 +15,8 @@ namespace ZipDeploy
             var options = new ZipDeployOptions();
             var context = new ZipContext();
 
+            IQueryPackageName queryPackageName = null;
+
             LoggerFactory = LoggerFactory ?? new LoggerFactory();
             _logger = LoggerFactory.CreateLogger<ZipDeploy>();
             _logger.LogDebug("ZipDeploy starting");
@@ -22,9 +25,11 @@ namespace ZipDeploy
             {
                 setupOptions?.Invoke(options);
 
-                var detectPackage = options.DetectPackage = options.DetectPackage ?? options.NewDetectPackage();
-                var triggerRestart = options.TriggerRestart ?? options.NewTriggerRestart();
-                var queryPackageName = options.QueryPackageName = options.QueryPackageName ?? options.NewQueryPackageName();
+                var provider = options.ServiceCollection.BuildServiceProvider();
+
+                var detectPackage = provider.GetRequiredService<IDetectPackage>();
+                var triggerRestart = provider.GetRequiredService<ITriggerRestart>();
+                queryPackageName = provider.GetRequiredService<IQueryPackageName>();
 
                 detectPackage.PackageDetected += () =>
                 {
@@ -42,7 +47,7 @@ namespace ZipDeploy
                 using (context)
                     _logger.Try("ZipDeploy before shutdown", () =>
                     {
-                        var packageName = options.QueryPackageName.FindPackageName();
+                        var packageName = queryPackageName?.FindPackageName();
 
                         if (packageName != null)
                         {
