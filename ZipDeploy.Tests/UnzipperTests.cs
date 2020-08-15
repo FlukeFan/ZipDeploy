@@ -264,9 +264,21 @@ namespace ZipDeploy.Tests
             Unzipper.PathWithoutExtension(@"wwwroot\test.dll.dll").Should().Be(@"wwwroot\test");
         }
 
+        [Test]
+        public void ZipDeploy_RegistrationIsComplete()
+        {
+            ZipDeploy.Run(
+                new LoggerFactory(),
+                _ => { },
+                () =>
+                {
+                    // do nothing
+                });
+        }
+
         private Unzipper NewUnzipper(Action<ZipDeployOptions> configure = null)
         {
-            var options = new ZipDeployOptions();
+            var options = new ZipDeployOptions(new LoggerFactory());
 
             configure?.Invoke(options);
             return new Unzipper(new LoggerFactory().CreateLogger<Unzipper>(), options);

@@ -17,7 +17,7 @@ namespace ZipDeploy
 
         public ZipDeployOptions(ILoggerFactory loggerFactory)
         {
-            ServiceCollection.AddSingleton<ILoggerFactory>(loggerFactory);
+            ServiceCollection.AddSingleton(loggerFactory);
             ServiceCollection.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
  
             ServiceCollection.AddSingleton(this);
