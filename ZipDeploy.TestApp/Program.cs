@@ -24,11 +24,12 @@ namespace ZipDeploy.TestApp
 
             LogManager.ThrowExceptions = true;
 
-            ZipDeploy.LoggerFactory = LoggerFactory.Create(c => c
+            var loggerFactory = LoggerFactory.Create(c => c
                 .SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Trace)
                 .AddNLog(config));
 
             ZipDeploy.Run(
+                loggerFactory,
                 _ => { },
                 () => BuildWebHost(args).Run());
         }

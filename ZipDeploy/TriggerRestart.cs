@@ -13,9 +13,9 @@ namespace ZipDeploy
     {
         private ILogger<AspNetRestart> _logger;
 
-        public AspNetRestart()
+        public AspNetRestart(ILogger<AspNetRestart> logger)
         {
-            _logger = ZipDeploy.LoggerFactory.CreateLogger<AspNetRestart>();
+            _logger = logger;
         }
 
         public void Trigger(ZipContext zipContext)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace ZipDeploy
 {
@@ -14,8 +15,11 @@ namespace ZipDeploy
         public const string DefaultDeployedPackageFileName  = "deployed.zip";
         public const string DefaultHashesFileName           = "zipDeployFileHashes.txt";
 
-        public ZipDeployOptions()
+        public ZipDeployOptions(ILoggerFactory loggerFactory)
         {
+            ServiceCollection.AddSingleton<ILoggerFactory>(loggerFactory);
+            ServiceCollection.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
+ 
             ServiceCollection.AddSingleton(this);
             ServiceCollection.AddSingleton<IDetectPackage, DetectPackage>();
             ServiceCollection.AddSingleton<ITriggerRestart, AspNetRestart>();

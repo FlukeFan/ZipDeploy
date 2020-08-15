@@ -17,9 +17,9 @@ namespace ZipDeploy
 
         public event Action PackageDetected;
 
-        public DetectPackage(ZipDeployOptions options)
+        public DetectPackage(ILogger<DetectPackage> logger, ZipDeployOptions options)
         {
-            _logger = ZipDeploy.LoggerFactory.CreateLogger<DetectPackage>();
+            _logger = logger;
 
             _fsw = new FileSystemWatcher(Environment.CurrentDirectory, options.WatchFilter);
             _fsw.Created += OnPacakgeDetected;

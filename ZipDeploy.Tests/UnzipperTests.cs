@@ -16,8 +16,6 @@ namespace ZipDeploy.Tests
         [SetUp]
         public void SetUp()
         {
-            ZipDeploy.LoggerFactory = new LoggerFactory();
-
             _filesFolder = Path.Combine(Test.GetOutputFolder(), "testFiles");
             FileSystem.DeleteFolder(_filesFolder);
             Directory.CreateDirectory(_filesFolder);
@@ -271,7 +269,7 @@ namespace ZipDeploy.Tests
             var options = new ZipDeployOptions();
 
             configure?.Invoke(options);
-            return new Unzipper(options);
+            return new Unzipper(new LoggerFactory().CreateLogger<Unzipper>(), options);
         }
 
         private void ExistingFiles(params string[] files)

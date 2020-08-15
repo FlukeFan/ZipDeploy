@@ -6,20 +6,23 @@ namespace ZipDeploy
 {
     public class ZipDeploy
     {
-        public static ILoggerFactory LoggerFactory = new LoggerFactory();
-
         private static ILogger<ZipDeploy> _logger;
 
         public static void Run(Action<ZipDeployOptions> setupOptions, Action program)
         {
-            var options = new ZipDeployOptions();
+            Run(null, setupOptions, program);
+        }
+
+        public static void Run(ILoggerFactory loggerFactory, Action<ZipDeployOptions> setupOptions, Action program)
+        {
+            loggerFactory = loggerFactory ?? new LoggerFactory();
+            _logger = loggerFactory.CreateLogger<ZipDeploy>();
+            _logger.LogDebug("ZipDeploy starting");
+
+            var options = new ZipDeployOptions(loggerFactory);
             var context = new ZipContext();
 
             IQueryPackageName queryPackageName = null;
-
-            LoggerFactory = LoggerFactory ?? new LoggerFactory();
-            _logger = LoggerFactory.CreateLogger<ZipDeploy>();
-            _logger.LogDebug("ZipDeploy starting");
 
             try
             {
@@ -52,7 +55,7 @@ namespace ZipDeploy
                         if (packageName != null)
                         {
                             _logger.LogDebug("Found package {packageName}", packageName);
-                            var unzipper = new Unzipper(options);
+                            var unzipper = new Unzipper(loggerFactory.CreateLogger<Unzipper>(), options);
                             unzipper.UnzipBinaries();
                             unzipper.SyncNonBinaries(deleteObsolete: false);
                         }
@@ -60,11 +63,6 @@ namespace ZipDeploy
                         _logger.LogDebug("ZipDeploy completed after process shutdown");
                     });
             }
-        }
-
-        public static ZipDeployOptions DefaultOptions()
-        {
-            return new ZipDeployOptions();
         }
     }
 }

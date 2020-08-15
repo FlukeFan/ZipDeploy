@@ -11,12 +11,12 @@ namespace ZipDeploy
 {
     public class Unzipper
     {
-        private ILogger<Unzipper>   _log;
+        private ILogger<Unzipper>   _logger;
         private ZipDeployOptions    _options;
 
-        public Unzipper(ZipDeployOptions options)
+        public Unzipper(ILogger<Unzipper> logger, ZipDeployOptions options)
         {
-            _log = ZipDeploy.LoggerFactory.CreateLogger<Unzipper>();
+            _logger = logger;
             _options = options;
         }
 
@@ -55,7 +55,7 @@ namespace ZipDeploy
 
             if (!string.IsNullOrEmpty(config) || File.Exists("web.config"))
             {
-                _log.LogDebug("Triggering restart by touching web.config");
+                _logger.LogDebug("Triggering restart by touching web.config");
                 config = config ?? File.ReadAllText("web.config");
                 config = _options.ProcessWebConfig(config);
                 File.WriteAllText("web.config", config);
@@ -105,7 +105,7 @@ namespace ZipDeploy
 
                 if (fileHashes.ContainsKey(fullName) && fileHash == fileHashes[fullName])
                 {
-                    _log.LogDebug($"no changes detected - skipping {fullName}");
+                    _logger.LogDebug($"no changes detected - skipping {fullName}");
                     return;
                 }
 
@@ -122,14 +122,14 @@ namespace ZipDeploy
             using (var streamWriter = File.Create(fullName))
             using (var zipInput = zipEntry.Open())
             {
-                _log.LogDebug($"extracting {fullName}");
+                _logger.LogDebug($"extracting {fullName}");
                 zipInput.CopyTo(streamWriter);
             }
         }
 
         private void UsingArchive(string zipFile, Action<IDictionary<string, ZipArchiveEntry>, IList<string>, IDictionary<string, string>> action)
         {
-            _log.LogDebug($"Opening {zipFile}");
+            _logger.LogDebug($"Opening {zipFile}");
 
             using (var zipArchive = ZipFile.OpenRead(zipFile))
             {
@@ -141,7 +141,7 @@ namespace ZipDeploy
                     .Where(k => _options.IsBinary(k))
                     .ToList();
 
-                _log.LogDebug($"{binaries.Count} binaries (dlls) in zip");
+                _logger.LogDebug($"{binaries.Count} binaries (dlls) in zip");
 
                 var binariesWithoutExtension = binaries.Select(binary => PathWithoutExtension(binary)).ToList();
 
@@ -193,7 +193,7 @@ namespace ZipDeploy
                 DeleteFile(forDelete);
             }
 
-            _log.LogDebug("Completed deletion of obsolete files");
+            _logger.LogDebug("Completed deletion of obsolete files");
         }
 
         private string RenameFile(string file)
@@ -234,12 +234,12 @@ namespace ZipDeploy
             {
                 try
                 {
-                    _log.LogDebug(what);
+                    _logger.LogDebug(what);
                     action();
                 }
                 catch (Exception e)
                 {
-                    _log.LogDebug(e, $"Error during {what}");
+                    _logger.LogDebug(e, $"Error during {what}");
                     Thread.Sleep(0);
 
                     if (count-- <= 0)
