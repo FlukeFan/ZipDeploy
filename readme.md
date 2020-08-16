@@ -3,6 +3,8 @@
 
 [![NuGet Badge](https://buildstats.info/nuget/zipdeploy)](https://www.nuget.org/packages/zipdeploy/)
 
+[Documentation](https://flukefan.github.io/ZipDeploy/)
+
 <pre>
 
 
