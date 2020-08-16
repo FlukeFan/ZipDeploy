@@ -82,7 +82,8 @@ namespace ZipDeploy.Tests
 
             CreateZip(ZipDeployOptions.DefaultNewPackageFileName, @"web.config");
 
-            NewUnzipper().UnzipBinaries();
+            var restarter = new AspNetRestart(new LoggerFactory().CreateLogger<AspNetRestart>(), new ZipDeployOptions(new LoggerFactory()));
+            restarter.Trigger(new ZipContext());
 
             File.ReadAllText("web.config").Should().Be("zipped content of web.config");
         }
