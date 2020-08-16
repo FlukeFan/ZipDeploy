@@ -11,7 +11,6 @@ namespace ZipDeploy.Tests.TestApp
     {
         [Test]
         [Test.IsSlow]
-        [Explicit("awaiting fix for integration tests")]
         public void DeployZip21()
         {
             IisAdmin.VerifyModuleInstalled(
