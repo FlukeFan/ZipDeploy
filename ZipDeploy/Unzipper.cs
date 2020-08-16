@@ -22,7 +22,6 @@ namespace ZipDeploy
 
         public void UnzipBinaries()
         {
-            var config = (string)null;
             var zippedFiles = new List<string>();
 
             UsingArchive(_options.NewPackageFileName, (entries, binariesWithoutExtension, fileHashes) =>
@@ -37,13 +36,6 @@ namespace ZipDeploy
 
                     Extract(fullName, entry.Value, fileHashes);
                 }
-
-                if (entries.ContainsKey("web.config"))
-                {
-                    using (var zipInput = entries["web.config"].Open())
-                    using (var sr = new StreamReader(zipInput))
-                        config = sr.ReadToEnd();
-                }
             });
 
             RenameObsoleteBinaries(zippedFiles);
@@ -52,15 +44,6 @@ namespace ZipDeploy
                 DeleteFile(_options.LegacyTempFileName);
 
             MoveFile(_options.NewPackageFileName, _options.LegacyTempFileName);
-
-            if (!string.IsNullOrEmpty(config) || File.Exists("web.config"))
-            {
-                _logger.LogDebug("Triggering restart by touching web.config");
-                config = config ?? File.ReadAllText("web.config");
-                config = _options.ProcessWebConfig(config);
-                File.WriteAllText("web.config", config);
-                File.SetLastWriteTimeUtc("web.config", File.GetLastWriteTimeUtc("web.config") + TimeSpan.FromSeconds(1));
-            }
         }
 
         public void SyncNonBinaries(bool deleteObsolete = true)

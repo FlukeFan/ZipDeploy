@@ -1,5 +1,6 @@
 ﻿#pragma warning disable CA1063 // Implement IDisposable Correctly
 using System;
+using System.IO.Compression;
 
 namespace ZipDeploy
 {
@@ -11,6 +12,13 @@ namespace ZipDeploy
         {
             _packageName = packageName;
             return this;
+        }
+
+        public void UsingArchive(Action<ZipArchive> action)
+        {
+            var packageName = _packageName ?? ZipDeployOptions.DefaultNewPackageFileName;
+            using (var zipArchive = ZipFile.OpenRead(packageName))
+                action(zipArchive);
         }
 
         public void Dispose()
