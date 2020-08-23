@@ -46,14 +46,14 @@ namespace ZipDeploy
 
                 // DeleteForDeleteFiles();
                 
-                if (!File.Exists(Path.Combine(Environment.CurrentDirectory, options.DeployedPackageFileName)))
+                if (!File.Exists(Path.Combine(Environment.CurrentDirectory, options.NewPackageFileName)))
                 {
-                    logger.LogInformation($"Package {options.DeployedPackageFileName} not found - running program");
+                    logger.LogInformation($"Package {options.NewPackageFileName} not found - running program");
                     program();
                 }
                 else
                 {
-                    logger.LogInformation($"Package {options.DeployedPackageFileName} found - skipping program");
+                    logger.LogInformation($"Package {options.NewPackageFileName} found - skipping program");
                 }
             }
             finally
