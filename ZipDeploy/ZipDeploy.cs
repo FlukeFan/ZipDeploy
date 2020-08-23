@@ -23,42 +23,42 @@ namespace ZipDeploy
             var logger = loggerFactory.CreateLogger<ZipDeploy>();
             logger.LogDebug("ZipDeploy starting");
 
-            using (var context = new ZipContext())
+            var options = new ZipDeployOptions(loggerFactory);
+            var context = new ZipContext();
+
+            IQueryPackageName queryPackageName = null;
+
+            try
             {
-                var options = new ZipDeployOptions(loggerFactory);
+                setupOptions?.Invoke(options);
 
-                IQueryPackageName queryPackageName = null;
+                var provider = options.ServiceCollection.BuildServiceProvider();
 
-                try
+                var detectPackage = provider.GetRequiredService<IDetectPackage>();
+                var triggerRestart = provider.GetRequiredService<ITriggerRestart>();
+                queryPackageName = provider.GetRequiredService<IQueryPackageName>();
+
+                detectPackage.PackageDetected += () =>
                 {
-                    setupOptions?.Invoke(options);
+                    context.SetPackageName(queryPackageName.FindPackageName());
+                    triggerRestart.Trigger(context);
+                };
 
-                    var provider = options.ServiceCollection.BuildServiceProvider();
-
-                    var detectPackage = provider.GetRequiredService<IDetectPackage>();
-                    var triggerRestart = provider.GetRequiredService<ITriggerRestart>();
-                    queryPackageName = provider.GetRequiredService<IQueryPackageName>();
-
-                    detectPackage.PackageDetected += () =>
-                    {
-                        context.SetPackageName(queryPackageName.FindPackageName());
-                        triggerRestart.Trigger(context);
-                    };
-
-                    // DeleteForDeleteFiles();
-
-                    if (!File.Exists(Path.Combine(Environment.CurrentDirectory, options.NewPackageFileName)))
-                    {
-                        logger.LogInformation($"Package {options.NewPackageFileName} not found - running program");
-                        program();
-                    }
-                    else
-                    {
-                        logger.LogInformation($"Package {options.NewPackageFileName} found - skipping program");
-                    }
+                // DeleteForDeleteFiles();
+                
+                if (!File.Exists(Path.Combine(Environment.CurrentDirectory, options.NewPackageFileName)))
+                {
+                    logger.LogInformation($"Package {options.NewPackageFileName} not found - running program");
+                    program();
                 }
-                finally
+                else
                 {
+                    logger.LogInformation($"Package {options.NewPackageFileName} found - skipping program");
+                }
+            }
+            finally
+            {
+                using (context)
                     logger.Try("ZipDeploy before shutdown", () =>
                     {
                         var packageName = queryPackageName?.FindPackageName();
@@ -73,7 +73,6 @@ namespace ZipDeploy
 
                         logger.LogDebug("ZipDeploy completed after process shutdown");
                     });
-                }
             }
         }
     }
