@@ -9,7 +9,6 @@ namespace ZipDeploy
 {
     public class ZipDeployOptions
     {
-        public const string DefaultWatchFilter              = "publish.zip";
         public const string DefaultNewPackageFileName       = "publish.zip";
         public const string DefaultLegacyTempFileName       = "installing.zip";
         public const string DefaultDeployedPackageFileName  = "deployed.zip";

@@ -21,18 +21,21 @@ namespace ZipDeploy
         {
             _logger = logger;
 
-            _fsw = new FileSystemWatcher(Environment.CurrentDirectory, options.DeployedPackageFileName);
+            _fsw = new FileSystemWatcher(Environment.CurrentDirectory, options.NewPackageFileName);
             _fsw.Created += OnPacakgeDetected;
             _fsw.Changed += OnPacakgeDetected;
             _fsw.Renamed += OnPacakgeDetected;
             _fsw.EnableRaisingEvents = true;
-            _logger.LogInformation($"Watching for {options.DeployedPackageFileName} in {Environment.CurrentDirectory}");
+            _logger.LogInformation($"Watching for {options.NewPackageFileName} in {Environment.CurrentDirectory}");
         }
 
         private void OnPacakgeDetected(object sender, FileSystemEventArgs e)
         {
             _logger.Try("zip file detected", () =>
-                PackageDetected?.Invoke());
+            {
+                PackageDetected?.Invoke();
+                _fsw.EnableRaisingEvents = false;
+            });
         }
     }
 }
