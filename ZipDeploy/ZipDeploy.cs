@@ -28,12 +28,11 @@ namespace ZipDeploy
 
             IQueryPackageName queryPackageName = null;
 
+            setupOptions?.Invoke(options);
+            var provider = options.ServiceCollection.BuildServiceProvider();
+
             try
             {
-                setupOptions?.Invoke(options);
-
-                var provider = options.ServiceCollection.BuildServiceProvider();
-
                 var detectPackage = provider.GetRequiredService<IDetectPackage>();
                 var triggerRestart = provider.GetRequiredService<ITriggerRestart>();
                 queryPackageName = provider.GetRequiredService<IQueryPackageName>();
@@ -44,8 +43,9 @@ namespace ZipDeploy
                     triggerRestart.Trigger(context);
                 };
 
-                // DeleteForDeleteFiles();
-                
+                var unzipper = provider.GetRequiredService<IUnzipper>();
+                unzipper.DeleteObsoleteFiles();
+
                 if (!File.Exists(Path.Combine(Environment.CurrentDirectory, options.NewPackageFileName)))
                 {
                     logger.LogInformation($"Package {options.NewPackageFileName} not found - running program");
@@ -65,9 +65,8 @@ namespace ZipDeploy
                     if (packageName != null)
                     {
                         logger.LogDebug("Found package {packageName}", packageName);
-                        var unzipper = new Unzipper(loggerFactory.CreateLogger<Unzipper>(), options);
-                        unzipper.UnzipBinaries();
-                        unzipper.SyncNonBinaries(deleteObsolete: false);
+                        var unzipper = provider.GetRequiredService<IUnzipper>();
+                        unzipper.Unzip();
                     }
 
                     logger.LogDebug("ZipDeploy completed after process shutdown");

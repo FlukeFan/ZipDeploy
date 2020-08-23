@@ -23,6 +23,7 @@ namespace ZipDeploy
             ServiceCollection.AddSingleton<IDetectPackage, DetectPackage>();
             ServiceCollection.AddSingleton<ITriggerRestart, AspNetRestart>();
             ServiceCollection.AddSingleton<IQueryPackageName, QueryPackageName>();
+            ServiceCollection.AddSingleton<IUnzipper, Unzipper>();
         }
 
         public IServiceCollection   ServiceCollection       { get; protected set; } = new ServiceCollection();

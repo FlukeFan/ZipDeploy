@@ -175,15 +175,13 @@ namespace ZipDeploy.Tests
             ExistingFiles(
                 "new.dll",
                 "zzz__obsolete.dll.fordelete.txt",
-                @"wwwroot\legacy.txt",
                 @"wwwroot\zzz__new.txt.fordelete.txt");
 
             CreateZip(ZipDeployOptions.DefaultLegacyTempFileName, "new.dll", @"wwwroot\new.txt");
 
-            NewUnzipper().SyncNonBinaries();
+            NewUnzipper().DeleteObsoleteFiles();
 
             File.Exists("zzz__obsolete.dll.fordelete.txt").Should().BeFalse("ZipDeploy should have deleted obsolete.dll.fordelete.txt");
-            File.Exists(@"wwwroot\legacy.txt").Should().BeFalse("legacy.txt should have been removed");
             File.Exists(@"wwwroot\zzz__new.txt.fordelete.txt").Should().BeFalse("new.txt.fordelete.txt should have been removed");
         }
 

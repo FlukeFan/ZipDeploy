@@ -9,7 +9,13 @@ using Microsoft.Extensions.Logging;
 
 namespace ZipDeploy
 {
-    public class Unzipper
+    public interface IUnzipper
+    {
+        void Unzip();
+        void DeleteObsoleteFiles();
+    }
+
+    public class Unzipper : IUnzipper
     {
         private ILogger<Unzipper>   _logger;
         private ZipDeployOptions    _options;
@@ -18,6 +24,19 @@ namespace ZipDeploy
         {
             _logger = logger;
             _options = options;
+        }
+
+        public void Unzip()
+        {
+            UnzipBinaries();
+            SyncNonBinaries();
+        }
+
+        public void DeleteObsoleteFiles()
+        {
+            foreach (var fullName in Directory.GetFiles(".", "*", SearchOption.AllDirectories).Select(f => NormalisePath(f)))
+                if (Path.GetFileName(fullName).StartsWith("zzz_") && fullName.EndsWith(".fordelete.txt"))
+                    DeleteFile(fullName);
         }
 
         public void UnzipBinaries()
@@ -46,7 +65,7 @@ namespace ZipDeploy
             MoveFile(_options.NewPackageFileName, _options.LegacyTempFileName);
         }
 
-        public void SyncNonBinaries(bool deleteObsolete = true)
+        public void SyncNonBinaries()
         {
             var zippedFiles = new List<string>();
 
@@ -66,9 +85,6 @@ namespace ZipDeploy
                     Extract(fullName, entry.Value, fileHashes);
                 }
             });
-
-            if (deleteObsolete)
-                DeleteObsoleteFiles(zippedFiles);
 
             if (File.Exists(_options.DeployedPackageFileName))
                 DeleteFile(_options.DeployedPackageFileName);
@@ -164,19 +180,6 @@ namespace ZipDeploy
             foreach (var fullName in Directory.GetFiles(".", "*", SearchOption.AllDirectories).Select(f => NormalisePath(f)))
                 if (_options.IsBinary(fullName) && !zippedFiles.Contains(fullName) && !ShouldIgnore(fullName))
                     RenameFile(fullName);
-        }
-
-        private void DeleteObsoleteFiles(IList<string> zippedFiles)
-        {
-            foreach (var forDelete in Directory.GetFiles(".", "*", SearchOption.AllDirectories).Select(f => NormalisePath(f)))
-            {
-                if (zippedFiles.Contains(forDelete) || ShouldIgnore(forDelete))
-                    continue;
-
-                DeleteFile(forDelete);
-            }
-
-            _logger.LogDebug("Completed deletion of obsolete files");
         }
 
         private string RenameFile(string file)

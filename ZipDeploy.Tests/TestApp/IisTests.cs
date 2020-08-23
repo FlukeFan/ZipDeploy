@@ -95,6 +95,7 @@ namespace ZipDeploy.Tests.TestApp
 
                 File.Exists(Path.Combine(iisFolder, ZipDeployOptions.DefaultNewPackageFileName)).Should().BeFalse("publish.zip should have been renamed to deployed.zip");
                 File.Exists(Path.Combine(iisFolder, ZipDeployOptions.DefaultDeployedPackageFileName)).Should().BeTrue("deployment should be complete, and publish.zip should have been renamed to deployed.zip");
+                File.Exists(Path.Combine(iisFolder, "zzz__ZipDeploy.dll.fordelete.txt")).Should().BeFalse("obsolete binaries should have been deleted on next startup");
 
                 IisAdmin.DeleteIisSite();
             });
