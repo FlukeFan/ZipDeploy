@@ -58,21 +58,20 @@ namespace ZipDeploy
             }
             finally
             {
-                using (context)
-                    logger.Try("ZipDeploy before shutdown", () =>
+                logger.Try("ZipDeploy before shutdown", () =>
+                {
+                    var packageName = queryPackageName?.FindPackageName();
+
+                    if (packageName != null)
                     {
-                        var packageName = queryPackageName?.FindPackageName();
+                        logger.LogDebug("Found package {packageName}", packageName);
+                        var unzipper = new Unzipper(loggerFactory.CreateLogger<Unzipper>(), options);
+                        unzipper.UnzipBinaries();
+                        unzipper.SyncNonBinaries(deleteObsolete: false);
+                    }
 
-                        if (packageName != null)
-                        {
-                            logger.LogDebug("Found package {packageName}", packageName);
-                            var unzipper = new Unzipper(loggerFactory.CreateLogger<Unzipper>(), options);
-                            unzipper.UnzipBinaries();
-                            unzipper.SyncNonBinaries(deleteObsolete: false);
-                        }
-
-                        logger.LogDebug("ZipDeploy completed after process shutdown");
-                    });
+                    logger.LogDebug("ZipDeploy completed after process shutdown");
+                });
             }
         }
     }

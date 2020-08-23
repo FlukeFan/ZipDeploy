@@ -1,10 +1,9 @@
-﻿#pragma warning disable CA1063 // Implement IDisposable Correctly
-using System;
+﻿using System;
 using System.IO.Compression;
 
 namespace ZipDeploy
 {
-    public class ZipContext : IDisposable
+    public class ZipContext
     {
         private string _packageName;
 
@@ -20,10 +19,5 @@ namespace ZipDeploy
             using (var zipArchive = ZipFile.OpenRead(packageName))
                 action(zipArchive);
         }
-
-        public void Dispose()
-        {
-        }
     }
 }
-#pragma warning restore CA1063 // Implement IDisposable Correctly
