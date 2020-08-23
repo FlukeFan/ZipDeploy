@@ -21,12 +21,12 @@ namespace ZipDeploy
         {
             _logger = logger;
 
-            _fsw = new FileSystemWatcher(Environment.CurrentDirectory, options.WatchFilter);
+            _fsw = new FileSystemWatcher(Environment.CurrentDirectory, options.DeployedPackageFileName);
             _fsw.Created += OnPacakgeDetected;
             _fsw.Changed += OnPacakgeDetected;
             _fsw.Renamed += OnPacakgeDetected;
             _fsw.EnableRaisingEvents = true;
-            _logger.LogInformation($"Watching for {options.WatchFilter} in {Environment.CurrentDirectory}");
+            _logger.LogInformation($"Watching for {options.DeployedPackageFileName} in {Environment.CurrentDirectory}");
         }
 
         private void OnPacakgeDetected(object sender, FileSystemEventArgs e)

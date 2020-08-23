@@ -27,7 +27,6 @@ namespace ZipDeploy
         }
 
         public IServiceCollection   ServiceCollection       { get; protected set; } = new ServiceCollection();
-        public string               WatchFilter             { get; protected set; } = DefaultWatchFilter;
         public string               NewPackageFileName      { get; protected set; } = DefaultNewPackageFileName;
         public string               LegacyTempFileName      { get; protected set; } = DefaultLegacyTempFileName;
         public string               DeployedPackageFileName { get; protected set; } = DefaultDeployedPackageFileName;
