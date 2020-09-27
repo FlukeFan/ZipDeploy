@@ -35,8 +35,8 @@ namespace ZipDeploy
                 detectPackage.PackageDetected += () =>
                     triggerRestart.Trigger();
 
-                var unzipper = provider.GetRequiredService<IUnzipper>();
-                unzipper.DeleteObsoleteFiles();
+                var cleaner = provider.GetRequiredService<ICleaner>();
+                cleaner.DeleteObsoleteFiles();
                 program();
             }
             finally

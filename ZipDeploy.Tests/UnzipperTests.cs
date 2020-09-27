@@ -179,7 +179,7 @@ namespace ZipDeploy.Tests
 
             CreateZip(ZipDeployOptions.DefaultLegacyTempFileName, "new.dll", @"wwwroot\new.txt");
 
-            NewUnzipper().DeleteObsoleteFiles();
+            NewCleaner().DeleteObsoleteFiles();
 
             File.Exists("zzz__obsolete.dll.fordelete.txt").Should().BeFalse("ZipDeploy should have deleted obsolete.dll.fordelete.txt");
             File.Exists(@"wwwroot\zzz__new.txt.fordelete.txt").Should().BeFalse("new.txt.fordelete.txt should have been removed");
@@ -281,6 +281,12 @@ namespace ZipDeploy.Tests
 
             configure?.Invoke(options);
             return new Unzipper(new LoggerFactory().CreateLogger<Unzipper>(), options);
+        }
+
+        private Cleaner NewCleaner()
+        {
+            var options = new ZipDeployOptions(new LoggerFactory());
+            return new Cleaner(new LoggerFactory().CreateLogger<Cleaner>(), options);
         }
 
         private void ExistingFiles(params string[] files)

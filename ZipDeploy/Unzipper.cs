@@ -4,7 +4,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Security.Cryptography;
-using System.Threading;
 using Microsoft.Extensions.Logging;
 
 namespace ZipDeploy
@@ -12,31 +11,25 @@ namespace ZipDeploy
     public interface IUnzipper
     {
         void Unzip();
-        void DeleteObsoleteFiles();
     }
 
     public class Unzipper : IUnzipper
     {
         private ILogger<Unzipper>   _logger;
         private ZipDeployOptions    _options;
+        private FsUtil _fsUtil;
 
         public Unzipper(ILogger<Unzipper> logger, ZipDeployOptions options)
         {
             _logger = logger;
             _options = options;
+            _fsUtil = new FsUtil(logger);
         }
 
         public void Unzip()
         {
             UnzipBinaries();
             SyncNonBinaries();
-        }
-
-        public void DeleteObsoleteFiles()
-        {
-            foreach (var fullName in Directory.GetFiles(".", "*", SearchOption.AllDirectories).Select(f => NormalisePath(f)))
-                if (Path.GetFileName(fullName).StartsWith("zzz_") && fullName.EndsWith(".fordelete.txt"))
-                    DeleteFile(fullName);
         }
 
         public void UnzipBinaries()
@@ -48,7 +41,7 @@ namespace ZipDeploy
                 foreach (var entry in entries)
                 {
                     var fullName = entry.Key;
-                    zippedFiles.Add(NormalisePath(fullName));
+                    zippedFiles.Add(_fsUtil.NormalisePath(fullName));
 
                     if (!binariesWithoutExtension.Contains(PathWithoutExtension(fullName)))
                         continue;
@@ -60,9 +53,9 @@ namespace ZipDeploy
             RenameObsoleteBinaries(zippedFiles);
 
             if (File.Exists(_options.LegacyTempFileName))
-                DeleteFile(_options.LegacyTempFileName);
+                _fsUtil.DeleteFile(_options.LegacyTempFileName);
 
-            MoveFile(_options.NewPackageFileName, _options.LegacyTempFileName);
+            _fsUtil.MoveFile(_options.NewPackageFileName, _options.LegacyTempFileName);
         }
 
         public void SyncNonBinaries()
@@ -74,7 +67,7 @@ namespace ZipDeploy
                 foreach (var entry in entries)
                 {
                     var fullName = entry.Key;
-                    zippedFiles.Add(NormalisePath(fullName));
+                    zippedFiles.Add(_fsUtil.NormalisePath(fullName));
 
                     if (binariesWithoutExtension.Contains(PathWithoutExtension(fullName)))
                         continue;
@@ -87,9 +80,9 @@ namespace ZipDeploy
             });
 
             if (File.Exists(_options.DeployedPackageFileName))
-                DeleteFile(_options.DeployedPackageFileName);
+                _fsUtil.DeleteFile(_options.DeployedPackageFileName);
 
-            MoveFile(_options.LegacyTempFileName, _options.DeployedPackageFileName);
+            _fsUtil.MoveFile(_options.LegacyTempFileName, _options.DeployedPackageFileName);
         }
 
         private void Extract(string fullName, ZipArchiveEntry zipEntry, IDictionary<string, string> fileHashes)
@@ -177,7 +170,7 @@ namespace ZipDeploy
 
         private void RenameObsoleteBinaries(IList<string> zippedFiles)
         {
-            foreach (var fullName in Directory.GetFiles(".", "*", SearchOption.AllDirectories).Select(f => NormalisePath(f)))
+            foreach (var fullName in Directory.GetFiles(".", "*", SearchOption.AllDirectories).Select(f => _fsUtil.NormalisePath(f)))
                 if (_options.IsBinary(fullName) && !zippedFiles.Contains(fullName) && !ShouldIgnore(fullName))
                     RenameFile(fullName);
         }
@@ -191,47 +184,11 @@ namespace ZipDeploy
             var path = Path.GetDirectoryName(file);
             var destinationFile = Path.Combine(path, $"zzz__{fileName}.fordelete.txt");
 
-            DeleteFile(destinationFile);
+            _fsUtil.DeleteFile(destinationFile);
 
-            MoveFile(file, destinationFile);
+            _fsUtil.MoveFile(file, destinationFile);
 
             return destinationFile;
-        }
-
-        private void DeleteFile(string file)
-        {
-            Try(() => File.Delete(file),
-                () => File.Exists(file),
-                $"delete file {file}");
-        }
-
-        private void MoveFile(string file, string destinationFile)
-        {
-            Try(() => File.Move(file, destinationFile),
-                () => File.Exists(file),
-                $"moving file {file} to {destinationFile}");
-        }
-
-        private void Try(Action action, Func<bool> notComplete, string what)
-        {
-            var count = 3;
-
-            while (notComplete())
-            {
-                try
-                {
-                    _logger.LogDebug(what);
-                    action();
-                }
-                catch (Exception e)
-                {
-                    _logger.LogDebug(e, $"Error during {what}");
-                    Thread.Sleep(0);
-
-                    if (count-- <= 0)
-                        throw;
-                }
-            }
         }
 
         private bool ShouldIgnore(string forDeleteFile)
@@ -251,17 +208,10 @@ namespace ZipDeploy
             if (isKnownfile)
                 return true;
 
-            if (_options.PathsToIgnore.Any(p => NormalisePath(forDeleteFile).ToLower().StartsWith(NormalisePath(p.ToLower()))))
+            if (_options.PathsToIgnore.Any(p => _fsUtil.NormalisePath(forDeleteFile).ToLower().StartsWith(_fsUtil.NormalisePath(p.ToLower()))))
                 return true;
 
             return false;
-        }
-
-        private string NormalisePath(string file)
-        {
-            file = file.Replace("\\", "/");
-            file = file.StartsWith("./") ? file.Substring(2) : file;
-            return file;
         }
     }
 }
