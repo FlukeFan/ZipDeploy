@@ -33,26 +33,17 @@ namespace ZipDeploy
                 var triggerRestart = provider.GetRequiredService<ITriggerRestart>();
 
                 detectPackage.PackageDetected += () =>
-                    triggerRestart.Trigger(options);
+                    triggerRestart.Trigger();
 
                 var unzipper = provider.GetRequiredService<IUnzipper>();
                 unzipper.DeleteObsoleteFiles();
-
-                if (!File.Exists(Path.Combine(Environment.CurrentDirectory, options.NewPackageFileName)))
-                {
-                    logger.LogInformation($"Package {options.NewPackageFileName} not found - running program");
-                    program();
-                }
-                else
-                {
-                    logger.LogInformation($"Package {options.NewPackageFileName} found - skipping program");
-                }
+                program();
             }
             finally
             {
                 logger.Try("ZipDeploy before shutdown", () =>
                 {
-                    if (File.Exists(options.NewPackageFileName))
+                    if (File.Exists(Path.Combine(Environment.CurrentDirectory, options.NewPackageFileName)))
                     {
                         logger.LogDebug("Found package {packageName}", options.NewPackageFileName);
                         var unzipper = provider.GetRequiredService<IUnzipper>();

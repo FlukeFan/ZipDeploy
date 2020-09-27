@@ -22,14 +22,14 @@ namespace ZipDeploy
             _logger = logger;
 
             _fsw = new FileSystemWatcher(Environment.CurrentDirectory, options.NewPackageFileName);
-            _fsw.Created += OnPacakgeDetected;
-            _fsw.Changed += OnPacakgeDetected;
-            _fsw.Renamed += OnPacakgeDetected;
+            _fsw.Created += OnPackageDetected;
+            _fsw.Changed += OnPackageDetected;
+            _fsw.Renamed += OnPackageDetected;
             _fsw.EnableRaisingEvents = true;
             _logger.LogInformation($"Watching for {options.NewPackageFileName} in {Environment.CurrentDirectory}");
         }
 
-        private void OnPacakgeDetected(object sender, FileSystemEventArgs e)
+        private void OnPackageDetected(object sender, FileSystemEventArgs e)
         {
             _logger.Try("zip file detected", () =>
             {

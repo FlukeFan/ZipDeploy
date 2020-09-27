@@ -6,7 +6,7 @@ namespace ZipDeploy
 {
     public interface ITriggerRestart
     {
-        void Trigger(ZipDeployOptions options);
+        void Trigger();
     }
 
     public class AspNetRestart : ITriggerRestart
@@ -20,9 +20,9 @@ namespace ZipDeploy
             _options = options;
         }
 
-        public void Trigger(ZipDeployOptions options)
+        public void Trigger()
         {
-            options.UsingArchive(zipArchive =>
+            _options.UsingArchive(zipArchive =>
             {
                 var webConfigContent = (string)null;
                 var webConfigEntry = zipArchive.GetEntry("web.config");
