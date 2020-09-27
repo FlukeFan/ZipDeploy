@@ -11,7 +11,7 @@ namespace ZipDeploy.Tests.TestApp
     {
         [Test]
         [Test.IsSlow]
-        public void DeployZip21()
+        public void DeployZipExeStyle()
         {
             IisAdmin.VerifyModuleInstalled(
                 moduleName: "AspNetCoreModule",

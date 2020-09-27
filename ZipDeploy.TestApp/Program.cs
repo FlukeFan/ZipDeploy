@@ -30,7 +30,7 @@ namespace ZipDeploy.TestApp
 
             ZipDeploy.Run(
                 loggerFactory,
-                _ => { },
+                options => options.IgnorePathStarting("logs"),
                 () => BuildWebHost(args).Run());
         }
 
