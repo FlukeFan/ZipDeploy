@@ -28,61 +28,22 @@ namespace ZipDeploy
 
         public void Unzip()
         {
-            UnzipBinaries();
-            SyncNonBinaries();
-        }
-
-        public void UnzipBinaries()
-        {
             var zippedFiles = new List<string>();
 
-            UsingArchive(_options.NewPackageFileName, (entries, binariesWithoutExtension, fileHashes) =>
+            UsingArchive((entries, fileHashes) =>
             {
                 foreach (var entry in entries)
                 {
                     var fullName = entry.Key;
                     zippedFiles.Add(_fsUtil.NormalisePath(fullName));
-
-                    if (!binariesWithoutExtension.Contains(PathWithoutExtension(fullName)))
-                        continue;
-
                     Extract(fullName, entry.Value, fileHashes);
                 }
             });
 
-            RenameObsoleteBinaries(zippedFiles);
+            RenameObsoleteFiles(zippedFiles);
 
-            if (File.Exists(_options.LegacyTempFileName))
-                _fsUtil.DeleteFile(_options.LegacyTempFileName);
-
-            _fsUtil.MoveFile(_options.NewPackageFileName, _options.LegacyTempFileName);
-        }
-
-        public void SyncNonBinaries()
-        {
-            var zippedFiles = new List<string>();
-
-            UsingArchive(_options.LegacyTempFileName, (entries, binariesWithoutExtension, fileHashes) =>
-            {
-                foreach (var entry in entries)
-                {
-                    var fullName = entry.Key;
-                    zippedFiles.Add(_fsUtil.NormalisePath(fullName));
-
-                    if (binariesWithoutExtension.Contains(PathWithoutExtension(fullName)))
-                        continue;
-
-                    if (fullName == "web.config")
-                        continue;
-
-                    Extract(fullName, entry.Value, fileHashes);
-                }
-            });
-
-            if (File.Exists(_options.DeployedPackageFileName))
-                _fsUtil.DeleteFile(_options.DeployedPackageFileName);
-
-            _fsUtil.MoveFile(_options.LegacyTempFileName, _options.DeployedPackageFileName);
+            _fsUtil.PrepareForDelete(_options.DeployedPackageFileName);
+            _fsUtil.MoveFile(_options.NewPackageFileName, _options.DeployedPackageFileName);
         }
 
         private void Extract(string fullName, ZipArchiveEntry zipEntry, IDictionary<string, string> fileHashes)
@@ -119,23 +80,15 @@ namespace ZipDeploy
             }
         }
 
-        private void UsingArchive(string zipFile, Action<IDictionary<string, ZipArchiveEntry>, IList<string>, IDictionary<string, string>> action)
+        private void UsingArchive(Action<IDictionary<string, ZipArchiveEntry>, IDictionary<string, string>> action)
         {
-            _logger.LogDebug($"Opening {zipFile}");
-
-            using (var zipArchive = ZipFile.OpenRead(zipFile))
+            _options.UsingArchive(zipArchive =>
             {
                 var entries = zipArchive.Entries
                     .Where(e => e.Length != 0)
                     .ToDictionary(zfe => zfe.FullName, zfe => zfe);
 
-                var binaries = entries.Keys
-                    .Where(k => _options.IsBinary(k))
-                    .ToList();
-
-                _logger.LogDebug($"{binaries.Count} binaries (dlls) in zip");
-
-                var binariesWithoutExtension = binaries.Select(binary => PathWithoutExtension(binary)).ToList();
+                _logger.LogDebug($"{entries.Count} files in zip");
 
                 var fileHashes = new Dictionary<string, string>();
 
@@ -146,13 +99,13 @@ namespace ZipDeploy
                         .ToDictionary(a => a[0], a => a[1]);
                 }
 
-                action(entries, binariesWithoutExtension, fileHashes);
+                action(entries, fileHashes);
 
                 var hashesStrings = fileHashes
                     .Select(kvp => $"{kvp.Key}|{kvp.Value}");
 
                 File.WriteAllLines(_options.HashesFileName, hashesStrings);
-            }
+            });
         }
 
         public static string PathWithoutExtension(string file)
@@ -168,10 +121,10 @@ namespace ZipDeploy
             return file;
         }
 
-        private void RenameObsoleteBinaries(IList<string> zippedFiles)
+        private void RenameObsoleteFiles(IList<string> zippedFiles)
         {
             foreach (var fullName in Directory.GetFiles(".", "*", SearchOption.AllDirectories).Select(f => _fsUtil.NormalisePath(f)))
-                if (_options.IsBinary(fullName) && !zippedFiles.Contains(fullName) && !ShouldIgnore(fullName))
+                if (!zippedFiles.Contains(fullName) && !ShouldIgnore(fullName))
                     _fsUtil.PrepareForDelete(fullName);
         }
 
@@ -190,6 +143,9 @@ namespace ZipDeploy
             var isKnownfile = knownFiles.Contains(file);
 
             if (isKnownfile)
+                return true;
+
+            if (_fsUtil.IsForDelete(forDeleteFile))
                 return true;
 
             if (_options.PathsToIgnore.Any(p => _fsUtil.NormalisePath(forDeleteFile).ToLower().StartsWith(_fsUtil.NormalisePath(p.ToLower()))))

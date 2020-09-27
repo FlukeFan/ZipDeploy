@@ -52,6 +52,7 @@ namespace ZipDeploy
                 webConfigContent = _options.ProcessWebConfig(webConfigContent);
                 File.WriteAllText("web.config", webConfigContent);
                 File.SetLastWriteTimeUtc("web.config", File.GetLastWriteTimeUtc("web.config") + TimeSpan.FromSeconds(1));
+                _options.PathsToIgnore.Add("web.config");
             });
         }
     }

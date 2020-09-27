@@ -10,6 +10,8 @@ namespace ZipDeploy
 {
     public class ZipDeployOptions
     {
+        private ILogger<ZipDeployOptions> _logger;
+
         public const string DefaultNewPackageFileName       = "publish.zip";
         public const string DefaultLegacyTempFileName       = "installing.zip";
         public const string DefaultDeployedPackageFileName  = "deployed.zip";
@@ -21,6 +23,7 @@ namespace ZipDeploy
         {
             ServiceCollection.AddSingleton(loggerFactory);
             ServiceCollection.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
+            _logger = loggerFactory.CreateLogger<ZipDeployOptions>();
  
             ServiceCollection.AddSingleton(this);
             ServiceCollection.AddSingleton<IDetectPackage, DetectPackage>();
@@ -75,8 +78,9 @@ namespace ZipDeploy
 
         internal void UsingArchive(Action<ZipArchive> action)
         {
-            var packageName = NewPackageFileName;
-            using (var zipArchive = ZipFile.OpenRead(packageName))
+            _logger.LogDebug($"Opening {NewPackageFileName}");
+
+            using (var zipArchive = ZipFile.OpenRead(NewPackageFileName))
                 action(zipArchive);
         }
     }
