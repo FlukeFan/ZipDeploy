@@ -4,7 +4,6 @@
 
   <PropertyGroup>
     <TargetFramework>net461</TargetFramework>
-    <CoverageTarget>80</CoverageTarget><!-- TODO: put back to 85% once IIS tests are working again -->
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     <WarningsAsErrors />
   </PropertyGroup>

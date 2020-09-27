@@ -45,21 +45,6 @@ namespace ZipDeploy.Tests
         }
 
         [Test]
-        public void Unzip_CanSpecifyCustomBinaryDependencies()
-        {
-            ExistingFiles("log.dll", "log.config", "mylog.config");
-
-            CreateZip(ZipDeployOptions.DefaultNewPackageFileName, "log.dll", "log.config", "mylog.config");
-
-            NewUnzipper(opt => opt.UseIsBinary(f => ZipDeployOptions.DefaultIsBinary(f) || Path.GetFileName(f) == "mylog.config")).Unzip();
-
-            File.ReadAllText("log.config").Should().Be("zipped content of log.config");
-            File.ReadAllText("zzz__log.config.fordelete.txt").Should().Be("existing content of log.config");
-            File.ReadAllText("mylog.config").Should().Be("zipped content of mylog.config");
-            File.ReadAllText("zzz__mylog.config.fordelete.txt").Should().Be("existing content of mylog.config");
-        }
-
-        [Test]
         public void Unzip_ExistingMarkedDeleteFilesAreOverwritten()
         {
             var expectedContent = "existing content of binary.dll";
@@ -145,7 +130,7 @@ namespace ZipDeploy.Tests
                 "zzz__obsolete.dll.fordelete.txt",
                 @"wwwroot\zzz__new.txt.fordelete.txt");
 
-            CreateZip(ZipDeployOptions.DefaultLegacyTempFileName, "new.dll", @"wwwroot\new.txt");
+            CreateZip(ZipDeployOptions.DefaultDeployedPackageFileName, "new.dll", @"wwwroot\new.txt");
 
             NewCleaner().DeleteObsoleteFiles();
 

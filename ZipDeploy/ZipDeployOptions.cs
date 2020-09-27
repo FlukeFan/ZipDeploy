@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -13,7 +11,6 @@ namespace ZipDeploy
         private ILogger<ZipDeployOptions> _logger;
 
         public const string DefaultNewPackageFileName       = "publish.zip";
-        public const string DefaultLegacyTempFileName       = "installing.zip";
         public const string DefaultDeployedPackageFileName  = "deployed.zip";
         public const string DefaultHashesFileName           = "zipDeployFileHashes.txt";
 
@@ -34,11 +31,9 @@ namespace ZipDeploy
 
         public IServiceCollection   ServiceCollection       { get; protected set; } = new ServiceCollection();
         public IList<string>        PathsToIgnore           { get; protected set; } = new List<string>();
-        public Func<string, bool>   IsBinary                { get; protected set; } = DefaultIsBinary;
         public Func<string, string> ProcessWebConfig        { get; protected set; } = DefaultProcessWebConfig;
 
         public string               NewPackageFileName      { get; set; } = DefaultNewPackageFileName;
-        public string               LegacyTempFileName      { get; set; } = DefaultLegacyTempFileName;
         public string               DeployedPackageFileName { get; set; } = DefaultDeployedPackageFileName;
         public string               HashesFileName          { get; set; } = DefaultHashesFileName;
 
@@ -48,24 +43,10 @@ namespace ZipDeploy
             return beforeConfig;
         }
 
-        /// <summary>Default implementation is to return true if the extension is .dll or .exe</summary>
-        public static bool DefaultIsBinary(string file)
-        {
-            var extension = Path.GetExtension(file)?.ToLower();
-            return new string[] { ".dll", ".exe" }.Contains(extension);
-        }
-
         /// <summary>Specify any paths to ignore (e.g., "log.txt", or "logs/", or "uploads\today")</summary>
         public ZipDeployOptions IgnorePathStarting(string path)
         {
             PathsToIgnore.Add(path);
-            return this;
-        }
-
-        /// <summary>Specify custom function to determine binary files (which are processed before restart of web application)</summary>
-        public ZipDeployOptions UseIsBinary(Func<string, bool> isBinary)
-        {
-            IsBinary = isBinary;
             return this;
         }
 

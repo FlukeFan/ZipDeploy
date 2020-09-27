@@ -135,7 +135,6 @@ namespace ZipDeploy
             var knownFiles = new List<string>
             {
                 _options.NewPackageFileName,
-                _options.LegacyTempFileName,
                 _options.DeployedPackageFileName,
                 _options.HashesFileName,
             };
