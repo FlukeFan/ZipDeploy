@@ -35,6 +35,24 @@ namespace ZipDeploy
                 $"moving file {file} to {destinationFile}");
         }
 
+        public void PrepareForDelete(string fullName)
+        {
+            if (!File.Exists(fullName))
+                return;
+
+            var fileName = Path.GetFileName(fullName);
+            var path = Path.GetDirectoryName(fullName);
+            var destinationFile = Path.Combine(path, $"zzz__{fileName}.fordelete.txt");
+
+            DeleteFile(destinationFile);
+            MoveFile(fullName, destinationFile);
+        }
+
+        public bool IsForDelete(string fullName)
+        {
+            return Path.GetFileName(fullName).StartsWith("zzz_") && fullName.EndsWith(".fordelete.txt");
+        }
+
         private void Try(Action action, Func<bool> notComplete, string what)
         {
             var count = 3;

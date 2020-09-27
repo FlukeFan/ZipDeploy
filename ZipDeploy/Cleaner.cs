@@ -25,7 +25,7 @@ namespace ZipDeploy
         public void DeleteObsoleteFiles()
         {
             foreach (var fullName in Directory.GetFiles(".", "*", SearchOption.AllDirectories).Select(f => _fsUtil.NormalisePath(f)))
-                if (Path.GetFileName(fullName).StartsWith("zzz_") && fullName.EndsWith(".fordelete.txt"))
+                if (_fsUtil.IsForDelete(fullName))
                     _fsUtil.DeleteFile(fullName);
         }
 

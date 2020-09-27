@@ -104,7 +104,7 @@ namespace ZipDeploy
                 fileHashes[fullName] = fileHash;
             }
 
-            var renamed = RenameFile(fullName);
+            _fsUtil.PrepareForDelete(fullName);
 
             var folder = Path.GetDirectoryName(fullName);
 
@@ -172,23 +172,7 @@ namespace ZipDeploy
         {
             foreach (var fullName in Directory.GetFiles(".", "*", SearchOption.AllDirectories).Select(f => _fsUtil.NormalisePath(f)))
                 if (_options.IsBinary(fullName) && !zippedFiles.Contains(fullName) && !ShouldIgnore(fullName))
-                    RenameFile(fullName);
-        }
-
-        private string RenameFile(string file)
-        {
-            if (!File.Exists(file))
-                return null;
-
-            var fileName = Path.GetFileName(file);
-            var path = Path.GetDirectoryName(file);
-            var destinationFile = Path.Combine(path, $"zzz__{fileName}.fordelete.txt");
-
-            _fsUtil.DeleteFile(destinationFile);
-
-            _fsUtil.MoveFile(file, destinationFile);
-
-            return destinationFile;
+                    _fsUtil.PrepareForDelete(fullName);
         }
 
         private bool ShouldIgnore(string forDeleteFile)
