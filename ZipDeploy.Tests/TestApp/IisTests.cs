@@ -25,7 +25,7 @@ namespace ZipDeploy.Tests.TestApp
             });
         }
 
-        [Test]
+        [Test][Ignore("to implement .UseZipDeploy()")]
         [Test.IsSlow]
         public void DeployZip2_1()
         {
