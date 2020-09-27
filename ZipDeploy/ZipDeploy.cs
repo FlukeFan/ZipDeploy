@@ -24,7 +24,6 @@ namespace ZipDeploy
             logger.LogDebug("ZipDeploy starting");
 
             var options = new ZipDeployOptions(loggerFactory);
-            var context = new ZipContext();
             setupOptions?.Invoke(options);
             var provider = options.ServiceCollection.BuildServiceProvider();
 
@@ -34,7 +33,7 @@ namespace ZipDeploy
                 var triggerRestart = provider.GetRequiredService<ITriggerRestart>();
 
                 detectPackage.PackageDetected += () =>
-                    triggerRestart.Trigger(context);
+                    triggerRestart.Trigger(options);
 
                 var unzipper = provider.GetRequiredService<IUnzipper>();
                 unzipper.DeleteObsoleteFiles();
