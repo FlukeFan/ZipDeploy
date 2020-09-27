@@ -25,6 +25,22 @@ namespace ZipDeploy.Tests.TestApp
             });
         }
 
+        [Test]
+        [Test.IsSlow]
+        public void DeployZip2_1()
+        {
+            IisAdmin.VerifyModuleInstalled(
+                moduleName: "AspNetCoreModule",
+                downloadUrl: "https://download.microsoft.com/download/6/E/B/6EBD972D-2E2F-41EB-9668-F73F5FDDC09C/dotnet-hosting-2.1.3-win.exe");
+
+            DeployZip(new DeployZipOptions
+            {
+                ExpectedRuntimeVersion = "2.1",
+                AppSourceFolder = "ZipDeploy.TestApp2_1",
+                AppPublishFolder = @"bin\Debug\netcoreapp2.1\win-x64\publish",
+            });
+        }
+
         private class DeployZipOptions
         {
             public string ExpectedRuntimeVersion;
