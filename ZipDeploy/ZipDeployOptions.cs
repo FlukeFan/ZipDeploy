@@ -22,7 +22,6 @@ namespace ZipDeploy
             ServiceCollection.AddSingleton(this);
             ServiceCollection.AddSingleton<IDetectPackage, DetectPackage>();
             ServiceCollection.AddSingleton<ITriggerRestart, AspNetRestart>();
-            ServiceCollection.AddSingleton<IQueryPackageName, QueryPackageName>();
             ServiceCollection.AddSingleton<IUnzipper, Unzipper>();
         }
 
