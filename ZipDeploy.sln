@@ -4,7 +4,7 @@ VisualStudioVersion = 16.0.29806.167
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZipDeploy", "ZipDeploy\ZipDeploy.csproj", "{C97D2221-483F-4C0C-A96F-621226C1494C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZipDeploy.TestApp", "ZipDeploy.TestApp\ZipDeploy.TestApp.csproj", "{8BE4FD2D-793C-475D-816D-16F444241D3F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZipDeploy.TestApp2_1Exe", "ZipDeploy.TestApp2_1Exe\ZipDeploy.TestApp2_1Exe.csproj", "{8BE4FD2D-793C-475D-816D-16F444241D3F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ZipDeploy.Tests", "ZipDeploy.Tests\ZipDeploy.Tests.csproj", "{958122A5-2C20-4E61-A99A-48A9EC5BA7BB}"
 EndProject

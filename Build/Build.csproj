@@ -37,13 +37,13 @@
 
   <ItemGroup>
     <ProjectsToBuild Include="..\ZipDeploy\*.csproj" />
-    <ProjectsToBuild Include="..\ZipDeploy.TestApp\*.csproj" />
+    <ProjectsToBuild Include="..\ZipDeploy.TestApp2_1Exe\*.csproj" />
     <ProjectsToBuild Include="..\ZipDeploy.Tests\*.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectsToClean Include="..\ZipDeploy.Tests\*.csproj" />
-    <ProjectsToClean Include="..\ZipDeploy.TestApp\*.csproj" />
+    <ProjectsToClean Include="..\ZipDeploy.TestApp2_1Exe\*.csproj" />
     <ProjectsToClean Include="..\ZipDeploy\*.csproj" />
   </ItemGroup>
 
