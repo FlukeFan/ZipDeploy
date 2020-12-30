@@ -22,6 +22,7 @@ namespace ZipDeploy.TestApp2_1
             config.AddRule(LogLevel.Trace, LogLevel.Fatal, logFile);
 
             LogManager.ThrowExceptions = true;
+            LogManager.Configuration = config;
 
             BuildWebHost(args).Run();
         }
