@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace ZipDeploy
 {
-    public class ZipDeploy
+    public static class ZipDeploy
     {
         public static void Run(Action program)
         {
@@ -20,7 +20,7 @@ namespace ZipDeploy
         public static void Run(ILoggerFactory loggerFactory, Action<ZipDeployOptions> setupOptions, Action program)
         {
             loggerFactory = loggerFactory ?? new LoggerFactory();
-            var logger = loggerFactory.CreateLogger<ZipDeploy>();
+            var logger = loggerFactory.CreateLogger(typeof(ZipDeploy));
             logger.LogDebug("ZipDeploy starting");
 
             var options = new ZipDeployOptions(loggerFactory);
@@ -53,6 +53,12 @@ namespace ZipDeploy
                     logger.LogDebug("ZipDeploy completed after process shutdown");
                 });
             }
+        }
+
+        public static IServiceCollection AddZipDeploy(this IServiceCollection serviceCollection)
+        {
+            serviceCollection.AddHostedService<ApplicationLifetime>();
+            return serviceCollection;
         }
     }
 }
