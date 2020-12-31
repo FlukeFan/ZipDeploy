@@ -49,7 +49,7 @@ namespace ZipDeploy
                 {
                     if (File.Exists(Path.Combine(Environment.CurrentDirectory, options.NewPackageFileName)))
                     {
-                        logger.LogDebug("Found package {packageName}", options.NewPackageFileName);
+                        logger.LogInformation("Found package {packageName}", options.NewPackageFileName);
                         var unzipper = provider.GetRequiredService<IUnzipper>();
                         unzipper.Unzip();
                     }

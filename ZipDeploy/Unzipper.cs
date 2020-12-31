@@ -28,6 +28,7 @@ namespace ZipDeploy
 
         public void Unzip()
         {
+            _logger.LogInformation("Unzipping deployment package");
             var zippedFiles = new List<string>();
 
             UsingArchive((entries, fileHashes) =>
@@ -44,17 +45,16 @@ namespace ZipDeploy
 
             _fsUtil.PrepareForDelete(_options.DeployedPackageFileName);
             _fsUtil.MoveFile(_options.NewPackageFileName, _options.DeployedPackageFileName);
+            _logger.LogInformation("Completed unzipping of deployment package");
         }
 
         private void Extract(string fullName, ZipArchiveEntry zipEntry, IDictionary<string, string> fileHashes)
         {
-            string fileHash = "";
-
             using (var zipInput = zipEntry.Open())
             using (var md5 = MD5.Create())
             {
                 var fileHashBytes = md5.ComputeHash(zipInput);
-                fileHash = BitConverter.ToString(fileHashBytes);
+                var fileHash = BitConverter.ToString(fileHashBytes);
 
                 if (fileHashes.ContainsKey(fullName) && fileHash == fileHashes[fullName])
                 {

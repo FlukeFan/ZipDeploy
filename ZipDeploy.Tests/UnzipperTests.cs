@@ -223,8 +223,7 @@ namespace ZipDeploy.Tests
 
         private Cleaner NewCleaner()
         {
-            var options = new ZipDeployOptions();
-            return new Cleaner(new LoggerFactory().CreateLogger<Cleaner>(), options);
+            return new Cleaner(new LoggerFactory().CreateLogger<Cleaner>());
         }
 
         private void ExistingFiles(params string[] files)

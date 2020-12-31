@@ -50,7 +50,7 @@ namespace ZipDeploy
 
         public virtual void BeforeStart()
         {
-            _logger.LogInformation("ZipDeploy startup - cleaning up");
+            _logger.LogInformation("Application startup");
 
             _detectPackage.PackageDetected += () =>
                 _triggerRestart.Trigger();
@@ -60,7 +60,7 @@ namespace ZipDeploy
 
         public virtual void AfterStopped()
         {
-            _logger.LogInformation("ZipDeploy unzipping after application stopped");
+            _logger.LogInformation("Application stopped");
 
             _logger.Try("ZipDeploy before shutdown", () =>
             {

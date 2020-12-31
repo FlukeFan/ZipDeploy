@@ -22,6 +22,8 @@ namespace ZipDeploy
 
         public void Trigger()
         {
+            _logger.LogInformation("Triggering restart");
+
             _options.UsingArchive(_logger, zipArchive =>
             {
                 var webConfigContent = (string)null;

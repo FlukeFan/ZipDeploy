@@ -31,6 +31,7 @@ namespace ZipDeploy
 
         private void OnPackageDetected(object sender, FileSystemEventArgs e)
         {
+            _logger.LogInformation("Detected installation package");
             _logger.Try("zip file detected", () =>
             {
                 PackageDetected?.Invoke();
