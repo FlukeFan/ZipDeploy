@@ -82,7 +82,7 @@ namespace ZipDeploy
 
         private void UsingArchive(Action<IDictionary<string, ZipArchiveEntry>, IDictionary<string, string>> action)
         {
-            _options.UsingArchive(zipArchive =>
+            _options.UsingArchive(_logger, zipArchive =>
             {
                 var entries = zipArchive.Entries
                     .Where(e => e.Length != 0)

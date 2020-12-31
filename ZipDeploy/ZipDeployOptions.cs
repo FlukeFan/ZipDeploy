@@ -8,20 +8,14 @@ namespace ZipDeploy
 {
     public class ZipDeployOptions
     {
-        private ILogger<ZipDeployOptions> _logger;
-
         public const string DefaultNewPackageFileName       = "publish.zip";
         public const string DefaultDeployedPackageFileName  = "deployed.zip";
         public const string DefaultHashesFileName           = "zipDeployFileHashes.txt";
 
-        public ZipDeployOptions() : this(new LoggerFactory()) { }
-
-        public ZipDeployOptions(ILoggerFactory loggerFactory)
+        public ZipDeployOptions(IServiceCollection serviceCollection)
         {
-            ServiceCollection.AddSingleton(loggerFactory);
-            ServiceCollection.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
-            _logger = loggerFactory.CreateLogger<ZipDeployOptions>();
- 
+            ServiceCollection = serviceCollection ?? new ServiceCollection();
+
             ServiceCollection.AddSingleton(this);
             ServiceCollection.AddSingleton<IDetectPackage, DetectPackage>();
             ServiceCollection.AddSingleton<ITriggerRestart, AspNetRestart>();
@@ -29,7 +23,7 @@ namespace ZipDeploy
             ServiceCollection.AddSingleton<IUnzipper, Unzipper>();
         }
 
-        public IServiceCollection   ServiceCollection       { get; protected set; } = new ServiceCollection();
+        public IServiceCollection   ServiceCollection       { get; }
         public IList<string>        PathsToIgnore           { get; protected set; } = new List<string>();
         public Func<string, string> ProcessWebConfig        { get; protected set; } = DefaultProcessWebConfig;
 
@@ -57,9 +51,9 @@ namespace ZipDeploy
             return this;
         }
 
-        internal void UsingArchive(Action<ZipArchive> action)
+        internal void UsingArchive(ILogger logger, Action<ZipArchive> action)
         {
-            _logger.LogDebug($"Opening {NewPackageFileName}");
+            logger.LogDebug($"Opening {NewPackageFileName}");
 
             using (var zipArchive = ZipFile.OpenRead(NewPackageFileName))
                 action(zipArchive);

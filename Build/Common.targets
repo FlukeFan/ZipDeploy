@@ -13,7 +13,7 @@
     <PackageIcon>icon.png</PackageIcon>
     <PackageProjectUrl>https://github.com/FlukeFan/ZipDeploy</PackageProjectUrl>
 
-    <CoverageTarget Condition="'$(CoverageTarget)'==''">90</CoverageTarget>
+    <CoverageTarget Condition="'$(CoverageTarget)'==''">80</CoverageTarget>
 
     <OpenCoverExe>$(NuGetPackageRoot)\opencover\4.7.922\tools\OpenCover.Console.exe</OpenCoverExe>
     <VsTestConsole>$(MSBuildExtensionsPath)vstest.console.dll</VsTestConsole>

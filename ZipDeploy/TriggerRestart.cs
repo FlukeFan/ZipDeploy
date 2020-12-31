@@ -22,7 +22,7 @@ namespace ZipDeploy
 
         public void Trigger()
         {
-            _options.UsingArchive(zipArchive =>
+            _options.UsingArchive(_logger, zipArchive =>
             {
                 var webConfigContent = (string)null;
                 var webConfigEntry = zipArchive.GetEntry("web.config");

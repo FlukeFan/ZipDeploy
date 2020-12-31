@@ -23,7 +23,11 @@ namespace ZipDeploy
             var logger = loggerFactory.CreateLogger(typeof(ZipDeploy));
             logger.LogDebug("ZipDeploy starting");
 
-            var options = new ZipDeployOptions(loggerFactory);
+            var services = new ServiceCollection();
+            services.AddSingleton(loggerFactory);
+            services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
+
+            var options = new ZipDeployOptions(services);
             setupOptions?.Invoke(options);
             var provider = options.ServiceCollection.BuildServiceProvider();
 
@@ -57,6 +61,7 @@ namespace ZipDeploy
 
         public static IServiceCollection AddZipDeploy(this IServiceCollection serviceCollection)
         {
+            new ZipDeployOptions(serviceCollection);
             serviceCollection.AddHostedService<ApplicationLifetime>();
             return serviceCollection;
         }
