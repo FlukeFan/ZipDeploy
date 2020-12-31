@@ -21,7 +21,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <TestDependencies Include="..\ZipDeploy.TestApp\**\*.*" Exclude="..\ZipDeploy.TestApp\obj\**\*.*" />
+    <TestDependencies Include="..\ZipDeploy.TestApp2_1\**\*.*" Exclude="..\ZipDeploy.TestApp2_1\obj\**\*.*" />
+    <TestDependencies Include="..\ZipDeploy.TestApp2_1Exe\**\*.*" Exclude="..\ZipDeploy.TestApp2_1Exe\obj\**\*.*" />
   </ItemGroup>
 
   <Target Name="After_Build" AfterTargets="Build">

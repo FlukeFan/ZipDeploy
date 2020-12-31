@@ -59,9 +59,10 @@ namespace ZipDeploy
             }
         }
 
-        public static IServiceCollection AddZipDeploy(this IServiceCollection serviceCollection)
+        public static IServiceCollection AddZipDeploy(this IServiceCollection serviceCollection, Action<ZipDeployOptions> setupOptions = null)
         {
-            new ZipDeployOptions(serviceCollection);
+            var options = new ZipDeployOptions(serviceCollection);
+            setupOptions?.Invoke(options);
             serviceCollection.AddHostedService<ApplicationLifetime>();
             return serviceCollection;
         }

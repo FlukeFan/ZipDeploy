@@ -20,14 +20,15 @@ namespace ZipDeploy.TestApp2_1
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            LoggerFactory.CreateLogger<Startup>().LogInformation("Startup");
-            services.AddZipDeploy();
+            LoggerFactory.CreateLogger<Startup>().LogInformation("Startup ConfigureServices");
+            services.AddZipDeploy(o => o.IgnorePathStarting("logs"));
             services.AddMvc();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILogger<Startup> logger)
         {
+            logger.LogInformation("Startup Configure");
             app.UseDeveloperExceptionPage();
 
             app.UseStaticFiles();
