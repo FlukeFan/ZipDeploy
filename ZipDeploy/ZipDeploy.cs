@@ -23,13 +23,13 @@ namespace ZipDeploy
             var logger = loggerFactory.CreateLogger(typeof(ZipDeploy));
             logger.LogDebug("ZipDeploy starting");
 
-            var services = new ServiceCollection();
-            services.AddSingleton(loggerFactory);
-            services.AddSingleton(typeof(ILogger<>), typeof(Logger<>));
-
-            var options = new ZipDeployOptions(services);
+            var options = new ZipDeployOptions();
             setupOptions?.Invoke(options);
-            var provider = options.ServiceCollection.BuildServiceProvider();
+
+            var provider = new ServiceCollection()
+                .RegisterLogger(loggerFactory)
+                .RegisterDefaults(options)
+                .BuildServiceProvider();
 
             try
             {
@@ -59,12 +59,13 @@ namespace ZipDeploy
             }
         }
 
-        public static IServiceCollection AddZipDeploy(this IServiceCollection serviceCollection, Action<ZipDeployOptions> setupOptions = null)
+        public static IServiceCollection AddZipDeploy(this IServiceCollection services, Action<ZipDeployOptions> setupOptions = null)
         {
-            var options = new ZipDeployOptions(serviceCollection);
+            var options = new ZipDeployOptions();
             setupOptions?.Invoke(options);
-            serviceCollection.AddHostedService<ApplicationLifetime>();
-            return serviceCollection;
+            services.RegisterDefaults(options);
+            services.AddHostedService<ApplicationLifetime>();
+            return services;
         }
     }
 }

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO.Compression;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace ZipDeploy
@@ -12,18 +11,6 @@ namespace ZipDeploy
         public const string DefaultDeployedPackageFileName  = "deployed.zip";
         public const string DefaultHashesFileName           = "zipDeployFileHashes.txt";
 
-        public ZipDeployOptions(IServiceCollection serviceCollection)
-        {
-            ServiceCollection = serviceCollection ?? new ServiceCollection();
-
-            ServiceCollection.AddSingleton(this);
-            ServiceCollection.AddSingleton<IDetectPackage, DetectPackage>();
-            ServiceCollection.AddSingleton<ITriggerRestart, AspNetRestart>();
-            ServiceCollection.AddSingleton<ICleaner, Cleaner>();
-            ServiceCollection.AddSingleton<IUnzipper, Unzipper>();
-        }
-
-        public IServiceCollection   ServiceCollection       { get; }
         public IList<string>        PathsToIgnore           { get; protected set; } = new List<string>();
         public Func<string, string> ProcessWebConfig        { get; protected set; } = DefaultProcessWebConfig;
 

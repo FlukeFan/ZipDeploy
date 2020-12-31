@@ -67,7 +67,7 @@ namespace ZipDeploy.Tests
 
             CreateZip(ZipDeployOptions.DefaultNewPackageFileName, @"web.config");
 
-            var restarter = new AspNetRestart(new LoggerFactory().CreateLogger<AspNetRestart>(), new ZipDeployOptions(null));
+            var restarter = new AspNetRestart(new LoggerFactory().CreateLogger<AspNetRestart>(), new ZipDeployOptions());
             restarter.Trigger();
 
             File.ReadAllText("web.config").Should().Be("zipped content of web.config");
@@ -215,7 +215,7 @@ namespace ZipDeploy.Tests
 
         private Unzipper NewUnzipper(Action<ZipDeployOptions> configure = null)
         {
-            var options = new ZipDeployOptions(null);
+            var options = new ZipDeployOptions();
 
             configure?.Invoke(options);
             return new Unzipper(new LoggerFactory().CreateLogger<Unzipper>(), options);
@@ -223,7 +223,7 @@ namespace ZipDeploy.Tests
 
         private Cleaner NewCleaner()
         {
-            var options = new ZipDeployOptions(null);
+            var options = new ZipDeployOptions();
             return new Cleaner(new LoggerFactory().CreateLogger<Cleaner>(), options);
         }
 
