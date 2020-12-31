@@ -22,7 +22,7 @@ namespace ZipDeploy
 
         public void DeleteObsoleteFiles()
         {
-            _logger.LogDebug("Deleting obsoleted files");
+            _logger.LogInformation("Deleting obsoleted files");
             var obsoleteFileCount = 0;
 
             foreach (var fullName in Directory.GetFiles(".", "*", SearchOption.AllDirectories).Select(f => _fsUtil.NormalisePath(f)))
