@@ -7,7 +7,7 @@ using NLog.Config;
 using NLog.Targets;
 using NLog.Web;
 
-namespace ZipDeploy.TestApp
+namespace ZipDeploy.TestApp2_1Exe
 {
     public static class Program
     {

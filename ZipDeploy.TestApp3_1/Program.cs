@@ -17,7 +17,7 @@ namespace ZipDeploy.TestApp3_1
 
             LogManager.ThrowExceptions = true;
             var config = new LoggingConfiguration();
-            var logFile = new FileTarget("fileTarget") { FileName = "logs\\nlog.log" };
+            var logFile = new FileTarget("fileTarget") { FileName = "logs\\nlog.log", ConcurrentWrites = true };
             config.AddTarget(logFile);
             config.AddRule(LogLevel.Trace, LogLevel.Fatal, logFile);
 

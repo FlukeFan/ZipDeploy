@@ -3,7 +3,7 @@ using System.Reflection;
 using System.Runtime.Versioning;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ZipDeploy.TestApp2_1Exe
+namespace ZipDeploy.TestApp3_1
 {
     public class HomeController : Controller
     {

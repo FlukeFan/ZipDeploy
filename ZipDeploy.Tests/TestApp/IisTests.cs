@@ -41,6 +41,22 @@ namespace ZipDeploy.Tests.TestApp
             });
         }
 
+        [Test]
+        [Test.IsSlow]
+        public void DeployZip3_1()
+        {
+            IisAdmin.VerifyModuleInstalled(
+                moduleName: "AspNetCoreModuleV2",
+                downloadUrl: "https://download.visualstudio.microsoft.com/download/pr/7e35ac45-bb15-450a-946c-fe6ea287f854/a37cfb0987e21097c7969dda482cebd3/dotnet-hosting-3.1.10-win.exe");
+
+            DeployZip(new DeployZipOptions
+            {
+                ExpectedRuntimeVersion = "3.1",
+                AppSourceFolder = "ZipDeploy.TestApp3_1",
+                AppPublishFolder = @"bin\Debug\netcoreapp3.1\win-x64\publish",
+            });
+        }
+
         private class DeployZipOptions
         {
             public string ExpectedRuntimeVersion;
@@ -50,6 +66,7 @@ namespace ZipDeploy.Tests.TestApp
 
         private void DeployZip(DeployZipOptions options)
         {
+            Test.WriteProgress($"appSourceFolder={options.AppSourceFolder}");
             IisAdmin.DeleteIisSite();
 
             var outputFolder = Test.GetOutputFolder();

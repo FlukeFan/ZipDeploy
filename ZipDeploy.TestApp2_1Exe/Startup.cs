@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace ZipDeploy.TestApp
+namespace ZipDeploy.TestApp2_1Exe
 {
     public class Startup
     {
