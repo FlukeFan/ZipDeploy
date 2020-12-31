@@ -43,6 +43,7 @@ namespace ZipDeploy.Tests.TestApp
 
         [Test]
         [Test.IsSlow]
+        [Ignore("Until we discover what causes recycle to 'lock up' in AspNetCoreModuleV2")]
         public void DeployZip3_1()
         {
             IisAdmin.VerifyModuleInstalled(
