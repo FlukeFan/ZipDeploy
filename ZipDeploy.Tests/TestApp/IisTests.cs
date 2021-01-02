@@ -101,6 +101,8 @@ namespace ZipDeploy.Tests.TestApp
                 Get("http://localhost:8099").Should().Contain("Version=123");
                 Get("http://localhost:8099/test.js").Should().Contain("alert(123);");
 
+                Test.WriteProgress($"Verified version 123");
+
                 FileSystem.CopySource(slnFolder, srcCopyFolder, options.AppSourceFolder);
                 FileSystem.ReplaceText(testAppfolder, @"HomeController.cs", "private const int c_version = 123;", "private const int c_version = 234;");
                 FileSystem.ReplaceText(testAppfolder, @"wwwroot\test.js", "alert(123);", "alert(234);");
@@ -115,11 +117,15 @@ namespace ZipDeploy.Tests.TestApp
                 var publishZip = Path.Combine(iisFolder, ZipDeployOptions.DefaultNewPackageFileName);
                 File.Move(uploadingZip, publishZip);
 
+                Test.WriteProgress($"Wrote {publishZip}");
+
                 Wait.For(() =>
                 {
                     File.Exists(publishZip).Should().BeFalse($"file {publishZip} should have been picked up by ZipDeploy");
                     File.GetLastWriteTimeUtc(configFile).Should().NotBe(lastConfigChange, $"file {configFile} should have been updated");
                 });
+
+                Test.WriteProgress($"Verified {publishZip} has been picked up and {configFile} has been updated");
 
                 // the binaries have been replaced, and the web.config should have been touched
                 // the next request should complete the installation, and return the new responses

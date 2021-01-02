@@ -35,9 +35,7 @@ namespace ZipDeploy
             {
                 var detectPackage = provider.GetRequiredService<IDetectPackage>();
                 var triggerRestart = provider.GetRequiredService<ITriggerRestart>();
-
-                detectPackage.PackageDetected += () =>
-                    triggerRestart.Trigger();
+                detectPackage.PackageDetected += triggerRestart.Trigger;
 
                 var cleaner = provider.GetRequiredService<ICleaner>();
                 cleaner.DeleteObsoleteFiles();
@@ -64,7 +62,7 @@ namespace ZipDeploy
             var options = new ZipDeployOptions();
             setupOptions?.Invoke(options);
             services.RegisterDefaults(options);
-            services.AddHostedService<ApplicationLifetime>();
+            services.AddHostedService<Application>();
             return services;
         }
     }

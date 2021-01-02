@@ -4,23 +4,20 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using IApplicationLifetime = Microsoft.AspNetCore.Hosting.IApplicationLifetime;
 
 namespace ZipDeploy
 {
-    public class ApplicationLifetime : IHostedService
+    public class Application : IHostedService
     {
-        private readonly ILogger<ApplicationLifetime> _logger;
-        private readonly IApplicationLifetime _applicationLifetime;
+        private readonly ILogger<Application> _logger;
         private readonly ICleaner _cleaner;
         private readonly IDetectPackage _detectPackage;
         private readonly ITriggerRestart _triggerRestart;
         private readonly ZipDeployOptions _options;
         private readonly IUnzipper _unzipper;
 
-        public ApplicationLifetime(
-            ILogger<ApplicationLifetime> logger,
-            IApplicationLifetime applicationLifetime,
+        public Application(
+            ILogger<Application> logger,
             ICleaner cleaner,
             IDetectPackage detectPackage,
             ITriggerRestart triggerRestart,
@@ -28,7 +25,6 @@ namespace ZipDeploy
             IUnzipper unzipper)
         {
             _logger = logger;
-            _applicationLifetime = applicationLifetime;
             _cleaner = cleaner;
             _detectPackage = detectPackage;
             _triggerRestart = triggerRestart;
@@ -38,27 +34,24 @@ namespace ZipDeploy
 
         Task IHostedService.StartAsync(CancellationToken cancellationToken)
         {
-            _applicationLifetime.ApplicationStarted.Register(BeforeStart);
-            _applicationLifetime.ApplicationStopped.Register(AfterStopped);
+            _logger.LogInformation("Application startup");
+
+            _logger.Try("ZipDeploy wireup package detection", () =>
+                _detectPackage.PackageDetected += _triggerRestart.Trigger);
+
+            try
+            {
+                _cleaner.DeleteObsoleteFiles();
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Error cleaning up obsolete files: {error}", e?.ToString());
+            }
+
             return Task.CompletedTask;
         }
 
         Task IHostedService.StopAsync(CancellationToken cancellationToken)
-        {
-            return Task.CompletedTask;
-        }
-
-        public virtual void BeforeStart()
-        {
-            _logger.LogInformation("Application startup");
-
-            _detectPackage.PackageDetected += () =>
-                _triggerRestart.Trigger();
-
-            _cleaner.DeleteObsoleteFiles();
-        }
-
-        public virtual void AfterStopped()
         {
             _logger.LogInformation("Application stopped");
 
@@ -72,6 +65,7 @@ namespace ZipDeploy
 
                 _logger.LogDebug("ZipDeploy completed after process shutdown");
             });
+            return Task.CompletedTask;
         }
     }
 }
