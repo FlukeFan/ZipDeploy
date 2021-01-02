@@ -2,3 +2,10 @@ image: Visual Studio 2019
 
 services:
   - iis
+
+build_script:
+  - dotnet --version
+  - dotnet --info
+  - cd Build
+  - dotnet restore Build.csproj
+  - dotnet msbuild Build.csproj
