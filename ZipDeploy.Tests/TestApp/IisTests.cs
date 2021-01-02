@@ -43,7 +43,6 @@ namespace ZipDeploy.Tests.TestApp
 
         [Test]
         [Test.IsSlow]
-        [Ignore("Until we discover what causes recycle to 'lock up' in AspNetCoreModuleV2")]
         public void DeployZip3_1()
         {
             IisAdmin.VerifyModuleInstalled(
@@ -130,8 +129,8 @@ namespace ZipDeploy.Tests.TestApp
                 // the binaries have been replaced, and the web.config should have been touched
                 // the next request should complete the installation, and return the new responses
 
-                Get("http://localhost:8099/test.js").Should().Contain("alert(234);");
                 Get("http://localhost:8099").Should().Contain("Version=234");
+                Get("http://localhost:8099/test.js").Should().Contain("alert(234);");
 
                 File.Exists(Path.Combine(iisFolder, ZipDeployOptions.DefaultNewPackageFileName)).Should().BeFalse("publish.zip should have been renamed to deployed.zip");
                 File.Exists(Path.Combine(iisFolder, ZipDeployOptions.DefaultDeployedPackageFileName)).Should().BeTrue("deployment should be complete, and publish.zip should have been renamed to deployed.zip");
