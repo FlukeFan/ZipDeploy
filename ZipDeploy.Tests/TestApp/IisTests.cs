@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
 using FluentAssertions;
@@ -55,6 +56,19 @@ namespace ZipDeploy.Tests.TestApp
                 AppSourceFolder = "ZipDeploy.TestApp3_1",
                 AppPublishFolder = @"bin\Debug\netcoreapp3.1\win-x64\publish",
             });
+        }
+
+        [Test]
+        public void RemoveOutOfProcessFix()
+        {
+            var now = DateTime.Now;
+            var fixBy = new DateTime(2021, 07, 01);
+
+            var projFile = Path.Combine(Test.GetSlnFolder(), "ZipDeploy.TestApp3_1\\ZipDeploy.TestApp3_1.csproj");
+            var projFileContent = File.ReadAllText(projFile);
+
+            if (now > fixBy)
+                projFileContent.Should().NotContain("OutOfProcess", $"should be running in-process by {fixBy}");
         }
 
         private class DeployZipOptions
