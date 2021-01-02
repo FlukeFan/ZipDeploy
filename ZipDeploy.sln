@@ -11,6 +11,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "root", "root", "{DC38B5AE-6742-4A3E-816D-E597FC6083B4}"
 	ProjectSection(SolutionItems) = preProject
 		.gitignore = .gitignore
+		appveyor.yml = appveyor.yml
 		CommandPrompt.bat = CommandPrompt.bat
 		global.json = global.json
 		LICENSE.txt = LICENSE.txt
