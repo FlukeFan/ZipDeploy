@@ -3,6 +3,9 @@ image: Visual Studio 2019
 services:
   - iis
 
+install:
+  - choco install dotnet-aspnetcoremodule-v2
+
 build_script:
   - dotnet --version
   - dotnet --info
