@@ -140,6 +140,9 @@ namespace ZipDeploy.Tests.TestApp
 
                 Test.WriteProgress($"Verified {publishZip} has been picked up and {configFile} has been updated");
 
+                var webConfig = Path.Combine(iisFolder, "web.config");
+                File.WriteAllText(webConfig, File.ReadAllText(webConfig).Replace("stdoutLogEnabled=\"false\"", "stdoutLogEnabled=\"true\""));
+
                 // the binaries have been replaced, and the web.config should have been touched
                 // the next request should complete the installation, and return the new responses
 

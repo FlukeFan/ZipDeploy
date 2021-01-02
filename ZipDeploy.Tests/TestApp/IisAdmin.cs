@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -21,11 +22,15 @@ namespace ZipDeploy.Tests.TestApp
             }
             catch (Exception e)
             {
-                var logFile = Path.Combine(iisFolder, "logs\\nlog.log");
+                var logsFolder = Path.Combine(iisFolder, "logs");
+                var logFiles = new Dictionary<string, string>();
 
-                var log = File.Exists(logFile)
-                    ? File.ReadAllText(logFile)
-                    : $"No log file found at {logFile}";
+                foreach (var logFile in Directory.GetFiles(logsFolder))
+                    logFiles.Add(logFile, File.ReadAllText(logFile));
+
+                var log = logFiles.Any()
+                    ? string.Join("\n\n", logFiles.Select(lf => $"{lf.Key}:\n{lf.Value}"))
+                    : $"No log files found in {logsFolder}";
 
                 throw new Exception($"assertion failure with log:\n\n{log}\n\n", e);
             }
