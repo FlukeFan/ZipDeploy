@@ -21,7 +21,12 @@ namespace ZipDeploy.Tests.TestApp
             }
             catch (Exception e)
             {
-                var log = File.ReadAllText(Path.Combine(iisFolder, "logs\\nlog.log"));
+                var logFile = Path.Combine(iisFolder, "logs\\nlog.log");
+
+                var log = File.Exists(logFile)
+                    ? File.ReadAllText(logFile)
+                    : $"No log file found at {logFile}";
+
                 throw new Exception($"assertion failure with log:\n\n{log}\n\n", e);
             }
         }
