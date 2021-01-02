@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -13,8 +12,6 @@ namespace ZipDeploy.Tests.TestApp
     {
         private const string    c_iisName = "ZipDeployTestApp";
         private const int       c_iisPort = 8099;
-
-        private static IList<string> InstalledModules = new List<string>();
 
         public static void ShowLogOnFail(string iisFolder, Action action)
         {
@@ -31,9 +28,6 @@ namespace ZipDeploy.Tests.TestApp
 
         public static void VerifyModuleInstalled(string moduleName, string downloadUrl)
         {
-            if (InstalledModules.Contains(moduleName))
-                return;
-
             using (var iisManager = new ServerManager())
             {
                 var globalModulesList = iisManager.GetApplicationHostConfiguration()
@@ -45,7 +39,7 @@ namespace ZipDeploy.Tests.TestApp
                 if (globalModules.Contains(moduleName))
                     return;
 
-                Test.WriteProgress($"Downloading {downloadUrl}");
+                Test.WriteProgress($"Downloading {downloadUrl} for module {moduleName}");
                 var filename = Path.GetFileName(downloadUrl);
 
                 if (!File.Exists(filename))
@@ -53,7 +47,7 @@ namespace ZipDeploy.Tests.TestApp
 
                 Test.WriteProgress($"Executing {filename} /install /quiet /norestart");
                 Exec.Cmd("", filename, "/install /quiet /norestart");
-                InstalledModules.Add(moduleName);
+                Exec.Cmd("", "iisreset", "");
             }
         }
 
