@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <AspNetCoreHostingModel>OutOfProcess</AspNetCoreHostingModel><!-- until IIS reliably recycles ANCM in-process -->
   </PropertyGroup>
 
   <ItemGroup>
