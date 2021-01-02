@@ -4,6 +4,7 @@ services:
   - iis
 
 install:
+  - choco install dotnet-aspnetcoremodule-v1
   - choco install dotnet-aspnetcoremodule-v2
 
 build_script:
