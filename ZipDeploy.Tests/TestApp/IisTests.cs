@@ -142,6 +142,8 @@ namespace ZipDeploy.Tests.TestApp
 
                 IisAdmin.DeleteIisSite();
             });
+
+            Test.WriteProgress($"appSourceFolder={options.AppSourceFolder} success");
         }
 
         private string Get(string url)
