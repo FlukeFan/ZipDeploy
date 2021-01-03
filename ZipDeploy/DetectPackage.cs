@@ -27,6 +27,9 @@ namespace ZipDeploy
             _fsw.Renamed += OnPackageDetected;
             _fsw.EnableRaisingEvents = true;
             _logger.LogInformation($"Watching for {options.NewPackageFileName} in {Environment.CurrentDirectory}");
+
+            if (!string.IsNullOrWhiteSpace(options.LegacyPackageFileName) && File.Exists(options.LegacyPackageFileName))
+                File.Move(options.LegacyPackageFileName, options.NewPackageFileName);
         }
 
         private void OnPackageDetected(object sender, FileSystemEventArgs e)
