@@ -13,3 +13,6 @@ build_script:
   - cd Build
   - dotnet restore Build.csproj
   - dotnet msbuild Build.csproj
+
+# build already runs tests and coverage, so turn AppVeyor tests off
+test: off
