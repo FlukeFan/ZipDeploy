@@ -45,13 +45,7 @@ namespace ZipDeploy
                 Task.Run(async () =>
                 {
                     await Task.Delay(_options.StartupPublishDelay);
-
-                    _logger.Try("trigger restart for package detected at startup", () =>
-                    {
-                        var tmpPublishFile = _options.NewPackageFileName + ".tmp";
-                        File.Move(_options.NewPackageFileName, tmpPublishFile);
-                        File.Move(tmpPublishFile, _options.NewPackageFileName);
-                    });
+                    OnPackageDetected(null, null);
                 });
             }
         }
