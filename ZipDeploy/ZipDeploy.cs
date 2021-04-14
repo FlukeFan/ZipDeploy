@@ -39,6 +39,7 @@ namespace ZipDeploy
 
                 var cleaner = provider.GetRequiredService<ICleaner>();
                 cleaner.DeleteObsoleteFiles();
+                detectPackage.Started();
                 program();
             }
             finally

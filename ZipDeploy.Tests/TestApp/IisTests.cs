@@ -92,11 +92,25 @@ namespace ZipDeploy.Tests.TestApp
             FileSystem.DeleteFolder(iisFolder);
             Directory.Move(publishFolder, iisFolder);
 
+            var existingZipTemp = Path.Combine(outputFolder, "publish.zip");
+            ZipFile.CreateFromDirectory(iisFolder, existingZipTemp);
+            var existingZip = Path.Combine(iisFolder, "publish.zip");
+            File.Move(existingZipTemp, existingZip);
+
             IisAdmin.ShowLogOnFail(iisFolder, () =>
             {
                 IisAdmin.CreateIisSite(iisFolder);
 
                 Get("http://localhost:8099/home/runtime").Should().Be(options.ExpectedRuntimeVersion);
+
+                Wait.For(() =>
+                {
+                    File.Exists(Path.Combine(iisFolder, ZipDeployOptions.DefaultNewPackageFileName)).Should().BeFalse("existing publish.zip should have been picked up at startup");
+                    File.Exists(Path.Combine(iisFolder, ZipDeployOptions.DefaultDeployedPackageFileName)).Should().BeTrue("deployment should be complete, and publish.zip should have been renamed to deployed.zip");
+                });
+
+                System.Threading.Thread.Sleep(200); // remove once IIS recycle working locally
+
                 Get("http://localhost:8099").Should().Contain("Version=123");
                 Get("http://localhost:8099/test.js").Should().Contain("alert(123);");
 

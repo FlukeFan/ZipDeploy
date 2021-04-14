@@ -48,6 +48,7 @@ namespace ZipDeploy
                 _logger.LogError(e, "Error cleaning up obsolete files: {error}", e?.ToString());
             }
 
+            _detectPackage.Started();
             return Task.CompletedTask;
         }
 

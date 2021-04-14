@@ -18,6 +18,7 @@ namespace ZipDeploy
         public string               LegacyPackageFileName   { get; set; } = "installing.zip"; // for anyone upgrading from 0.5
         public string               DeployedPackageFileName { get; set; } = DefaultDeployedPackageFileName;
         public string               HashesFileName          { get; set; } = DefaultHashesFileName;
+        public TimeSpan             StartupPublishDelay     { get; set; } = TimeSpan.FromSeconds(3);
 
         /// <summary>Default implementation is to return the web.config content unchanged</summary>
         public static string DefaultProcessWebConfig(string beforeConfig)
