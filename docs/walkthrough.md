@@ -19,15 +19,14 @@ Checkout your ASP.NET Core MVC application to `C:\Temp\MyApp`, and add the ZipDe
 
 Open `Startup.cs`, and add:
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void ConfigureServices(IServiceCollection services)
         {
-            app.UseZipDeploy(options => options
-                .UseIisUrl("http://localhost:8123"));
+            services.AddZipDeploy();
 
 Package the application:
 
     dotnet publish
-    move bin\Debug\netcoreapp2.0\publish ..\MySite
+    move bin\Debug\net5.0\publish ..\MySite
 
 Modify the security of the `C:\Temp\MySite` folder to add Everyone with Full Control (purely for demo purposes).
 
@@ -42,7 +41,7 @@ Make a change to your code that you wish to see reflected after deployment, and 
 
 Re-verify your site is running in the browser (and verify your changes are not present yet).  Now zip the contents of the pubish directory, and FTP the resulting zip into the root of the site.
 
-    7za.exe a publish.zip .\bin\Debug\netcoreapp2.0\publish\*
+    7za.exe a publish.zip .\bin\Debug\net5.0\publish\*
     ncftpput.exe -S .tmp localhost . publish.zip
 
 Note two things:

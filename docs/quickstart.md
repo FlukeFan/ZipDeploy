@@ -11,10 +11,9 @@ Open `Startup.cs`, and add:
 
     ...
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void ConfigureServices(IServiceCollection services)
         {
-            app.UseZipDeploy(options => options
-                .UseIisUrl("http://url.to.open.app/through/iis"));
+            services.AddZipDeploy();
 
 Now you can do:
 
