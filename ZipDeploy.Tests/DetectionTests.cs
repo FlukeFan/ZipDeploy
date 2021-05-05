@@ -44,20 +44,6 @@ namespace ZipDeploy.Tests
             Wait.For(TimeSpan.FromSeconds(1), () => detected.Should().Be(true));
         }
 
-        [Test]
-        public void WhenLegacyPackageIsDetected_PackageIsAutoDeployed()
-        {
-            var detected = false;
-            File.WriteAllBytes("installing.zip", new byte[0]);
-
-            var detector = NewDetectPackage();
-
-            detector.PackageDetected += () => detected = true;
-
-            Wait.For(TimeSpan.FromSeconds(1), () => detected.Should().Be(true));
-            File.Exists(ZipDeployOptions.DefaultNewPackageFileName).Should().BeTrue();
-        }
-
         private DetectPackage NewDetectPackage(Action<ZipDeployOptions> configure = null)
         {
             var options = new ZipDeployOptions();

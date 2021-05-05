@@ -15,7 +15,6 @@ namespace ZipDeploy
         public Func<string, string> ProcessWebConfig        { get; protected set; } = DefaultProcessWebConfig;
 
         public string               NewPackageFileName      { get; set; } = DefaultNewPackageFileName;
-        public string               LegacyPackageFileName   { get; set; } = "installing.zip"; // for anyone upgrading from 0.5
         public string               DeployedPackageFileName { get; set; } = DefaultDeployedPackageFileName;
         public string               HashesFileName          { get; set; } = DefaultHashesFileName;
         public TimeSpan             StartupPublishDelay     { get; set; } = TimeSpan.FromSeconds(3);
