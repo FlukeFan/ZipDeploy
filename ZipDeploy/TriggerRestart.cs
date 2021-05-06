@@ -12,15 +12,17 @@ namespace ZipDeploy
     public class AspNetRestart : ITriggerRestart
     {
         private ILogger<AspNetRestart> _logger;
+        private IProcessWebConfig _processWebConfig;
         private ZipDeployOptions _options;
 
-        public AspNetRestart(ILogger<AspNetRestart> logger, ZipDeployOptions options)
+        public AspNetRestart(ILogger<AspNetRestart> logger, IProcessWebConfig processWebConfig, ZipDeployOptions options)
         {
             _logger = logger;
+            _processWebConfig = processWebConfig;
             _options = options;
         }
 
-        public void Trigger()
+        public virtual void Trigger()
         {
             _logger.LogInformation("Triggering restart");
 
@@ -51,7 +53,7 @@ namespace ZipDeploy
                 }
 
                 _logger.LogDebug("Triggering restart by touching web.config");
-                webConfigContent = _options.ProcessWebConfig(webConfigContent);
+                webConfigContent = _processWebConfig.Process(webConfigContent);
                 File.WriteAllText("web.config", webConfigContent);
                 File.SetLastWriteTimeUtc("web.config", File.GetLastWriteTimeUtc("web.config") + TimeSpan.FromSeconds(1));
                 _options.PathsToIgnore.Add("web.config");

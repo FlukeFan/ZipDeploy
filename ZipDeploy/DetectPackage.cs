@@ -33,7 +33,7 @@ namespace ZipDeploy
             _logger.LogInformation($"Watching for {options.NewPackageFileName} in {Environment.CurrentDirectory}");
         }
 
-        public void Started()
+        public virtual void Started()
         {
             if (File.Exists(_options.NewPackageFileName))
             {
@@ -47,7 +47,7 @@ namespace ZipDeploy
             }
         }
 
-        private void OnPackageDetected(object sender, FileSystemEventArgs e)
+        protected virtual void OnPackageDetected(object sender, FileSystemEventArgs e)
         {
             _logger.LogInformation("Detected installation package");
             _logger.Try("zip file detected", () =>

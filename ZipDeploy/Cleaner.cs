@@ -20,7 +20,7 @@ namespace ZipDeploy
             _fsUtil = new FsUtil(logger);
         }
 
-        public void DeleteObsoleteFiles()
+        public virtual void DeleteObsoleteFiles()
         {
             _logger.LogInformation("Deleting obsoleted files");
             var obsoleteFileCount = 0;

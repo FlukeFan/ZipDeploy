@@ -26,7 +26,7 @@ namespace ZipDeploy
             _fsUtil = new FsUtil(logger);
         }
 
-        public void Unzip()
+        public virtual void Unzip()
         {
             _logger.LogInformation("Unzipping deployment package");
             var zippedFiles = new List<string>();
@@ -48,7 +48,7 @@ namespace ZipDeploy
             _logger.LogInformation("Completed unzipping of deployment package");
         }
 
-        private void Extract(string fullName, ZipArchiveEntry zipEntry, IDictionary<string, string> fileHashes)
+        protected virtual void Extract(string fullName, ZipArchiveEntry zipEntry, IDictionary<string, string> fileHashes)
         {
             using (var zipInput = zipEntry.Open())
             using (var md5 = MD5.Create())
@@ -80,7 +80,7 @@ namespace ZipDeploy
             }
         }
 
-        private void UsingArchive(Action<IDictionary<string, ZipArchiveEntry>, IDictionary<string, string>> action)
+        protected virtual void UsingArchive(Action<IDictionary<string, ZipArchiveEntry>, IDictionary<string, string>> action)
         {
             _options.UsingArchive(_logger, zipArchive =>
             {
@@ -121,14 +121,14 @@ namespace ZipDeploy
             return file;
         }
 
-        private void RenameObsoleteFiles(IList<string> zippedFiles)
+        protected virtual void RenameObsoleteFiles(IList<string> zippedFiles)
         {
             foreach (var fullName in Directory.GetFiles(".", "*", SearchOption.AllDirectories).Select(f => _fsUtil.NormalisePath(f)))
                 if (!zippedFiles.Contains(fullName) && !ShouldIgnore(fullName))
                     _fsUtil.PrepareForDelete(fullName);
         }
 
-        private bool ShouldIgnore(string forDeleteFile)
+        protected virtual bool ShouldIgnore(string forDeleteFile)
         {
             var file = Path.GetFileName(forDeleteFile);
 

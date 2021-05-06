@@ -19,6 +19,7 @@ namespace ZipDeploy
             services.AddSingleton<ITriggerRestart, AspNetRestart>();
             services.AddSingleton<ICleaner, Cleaner>();
             services.AddSingleton<IUnzipper, Unzipper>();
+            services.AddSingleton<IProcessWebConfig, ProcessWebConfig>();
             return services;
         }
     }
