@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading;
 using Microsoft.Extensions.Logging;
 
 namespace ZipDeploy
@@ -13,17 +14,31 @@ namespace ZipDeploy
     {
         private ILogger<AspNetRestart> _logger;
         private IProcessWebConfig _processWebConfig;
+        private ICanPauseTrigger _canPauseTrigger;
         private ZipDeployOptions _options;
 
-        public AspNetRestart(ILogger<AspNetRestart> logger, IProcessWebConfig processWebConfig, ZipDeployOptions options)
+        public AspNetRestart(
+            ILogger<AspNetRestart> logger,
+            IProcessWebConfig processWebConfig,
+            ICanPauseTrigger canPauseTrigger,
+            ZipDeployOptions options)
         {
             _logger = logger;
             _processWebConfig = processWebConfig;
+            _canPauseTrigger = canPauseTrigger;
             _options = options;
         }
 
         public virtual void Trigger()
         {
+            _logger.LogInformation("Awaiting trigger of restart");
+
+            using (var semaphore = new SemaphoreSlim(0, 1))
+            {
+                _canPauseTrigger.Release(semaphore);
+                semaphore.Wait();
+            }
+
             _logger.LogInformation("Triggering restart");
 
             _options.UsingArchive(_logger, zipArchive =>

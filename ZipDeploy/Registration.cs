@@ -20,6 +20,7 @@ namespace ZipDeploy
             services.AddSingleton<ICleaner, Cleaner>();
             services.AddSingleton<IUnzipper, Unzipper>();
             services.AddSingleton<IProcessWebConfig, ProcessWebConfig>();
+            services.AddSingleton<ICanPauseTrigger, CanPauseTrigger>();
             return services;
         }
     }
