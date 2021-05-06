@@ -44,7 +44,7 @@ namespace ZipDeploy
             }
             finally
             {
-                logger.Try("ZipDeploy before shutdown", () =>
+                logger.Retry(options, "ZipDeploy before shutdown", () =>
                 {
                     if (File.Exists(Path.Combine(Environment.CurrentDirectory, options.NewPackageFileName)))
                     {

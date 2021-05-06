@@ -36,19 +36,15 @@ namespace ZipDeploy
         {
             _logger.LogInformation("Application startup");
 
-            _logger.Try("ZipDeploy wireup package detection", () =>
-                _detectPackage.PackageDetected += _triggerRestart.Trigger);
+            _logger.LogDebug("ZipDeploy wireup package detection");
+            _detectPackage.PackageDetected += _triggerRestart.Trigger;
 
-            try
-            {
-                _cleaner.DeleteObsoleteFiles();
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "Error cleaning up obsolete files: {error}", e?.ToString());
-            }
+            _logger.Retry(_options, "Delete obsolete files", () =>
+                _cleaner.DeleteObsoleteFiles());
 
-            _detectPackage.Started();
+            _logger.Retry(_options, "Start package detection", () =>
+                _detectPackage.Started());
+
             return Task.CompletedTask;
         }
 
@@ -56,7 +52,7 @@ namespace ZipDeploy
         {
             _logger.LogInformation("Application stopped");
 
-            _logger.Try("ZipDeploy before shutdown", () =>
+            _logger.Retry(_options, "ZipDeploy before shutdown", () =>
             {
                 if (File.Exists(Path.Combine(Environment.CurrentDirectory, _options.NewPackageFileName)))
                 {
@@ -66,6 +62,7 @@ namespace ZipDeploy
 
                 _logger.LogDebug("ZipDeploy completed after process shutdown");
             });
+
             return Task.CompletedTask;
         }
     }

@@ -17,6 +17,7 @@ namespace ZipDeploy
         public string               DeployedPackageFileName { get; set; } = DefaultDeployedPackageFileName;
         public string               HashesFileName          { get; set; } = DefaultHashesFileName;
         public TimeSpan             StartupPublishDelay     { get; set; } = TimeSpan.FromSeconds(3);
+        public TimeSpan             ErrorRetryPeriod        { get; set; } = TimeSpan.FromMilliseconds(500);
 
         /// <summary>Specify any paths to ignore (e.g., "log.txt", or "logs/", or "uploads\today")</summary>
         public ZipDeployOptions IgnorePathStarting(string path)

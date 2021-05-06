@@ -50,7 +50,8 @@ namespace ZipDeploy
         protected virtual void OnPackageDetected(object sender, FileSystemEventArgs e)
         {
             _logger.LogInformation("Detected installation package");
-            _logger.Try("zip file detected", () =>
+
+            _logger.Retry(_options, "zip file detected", () =>
             {
                 PackageDetected?.Invoke();
                 _fsw.EnableRaisingEvents = false;
