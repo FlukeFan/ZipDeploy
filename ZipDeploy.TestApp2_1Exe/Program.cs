@@ -18,7 +18,8 @@ namespace ZipDeploy.TestApp2_1Exe
 
             LogManager.ThrowExceptions = true;
             var config = new LoggingConfiguration();
-            var logFile = new FileTarget("fileTarget") { FileName = "logs\\nlog.log" };
+            var layout = "${longdate}|${level:uppercase=true}|${processid}|${logger}|${message} ${exception:format=tostring}";
+            var logFile = new FileTarget("fileTarget") { FileName = "logs\\nlog.log", Layout = layout };
             config.AddTarget(logFile);
             config.AddRule(NLog.LogLevel.Trace, NLog.LogLevel.Fatal, logFile);
 
