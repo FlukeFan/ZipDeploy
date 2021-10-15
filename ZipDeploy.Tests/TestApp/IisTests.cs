@@ -109,8 +109,6 @@ namespace ZipDeploy.Tests.TestApp
                     File.Exists(Path.Combine(iisFolder, ZipDeployOptions.DefaultDeployedPackageFileName)).Should().BeTrue("deployment should be complete, and publish.zip should have been renamed to deployed.zip");
                 });
 
-                System.Threading.Thread.Sleep(200); // remove once IIS recycle working locally
-
                 Get("http://localhost:8099").Should().Contain("Version=123");
                 Get("http://localhost:8099/test.js").Should().Contain("alert(123);");
 
