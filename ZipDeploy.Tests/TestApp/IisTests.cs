@@ -109,6 +109,9 @@ namespace ZipDeploy.Tests.TestApp
                     File.Exists(Path.Combine(iisFolder, ZipDeployOptions.DefaultDeployedPackageFileName)).Should().BeTrue("deployment should be complete, and publish.zip should have been renamed to deployed.zip");
                 });
 
+                // avoids IIS returning 500.3:  https://github.com/dotnet/aspnetcore/issues/10117
+                System.Threading.Thread.Sleep(200);
+
                 Get("http://localhost:8099").Should().Contain("Version=123");
                 Get("http://localhost:8099/test.js").Should().Contain("alert(123);");
 
