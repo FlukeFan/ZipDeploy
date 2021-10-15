@@ -31,7 +31,7 @@ namespace ZipDeploy.TestApp2_1Exe
 
             ZipDeploy.Run(
                 loggerFactory,
-                options => options.IgnorePathStarting("logs"),
+                options => options.IgnorePathStarting("logs").UsingProcessLock(typeof(Program).FullName),
                 () => BuildWebHost(args).Run());
         }
 

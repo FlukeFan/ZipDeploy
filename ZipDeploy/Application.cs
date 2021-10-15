@@ -10,6 +10,7 @@ namespace ZipDeploy
     public class Application : IHostedService
     {
         private readonly ILogger<Application> _logger;
+        private readonly ILockProcess _lockProcess;
         private readonly ICleaner _cleaner;
         private readonly IDetectPackage _detectPackage;
         private readonly ITriggerRestart _triggerRestart;
@@ -18,6 +19,7 @@ namespace ZipDeploy
 
         public Application(
             ILogger<Application> logger,
+            ILockProcess lockProcess,
             ICleaner cleaner,
             IDetectPackage detectPackage,
             ITriggerRestart triggerRestart,
@@ -25,6 +27,7 @@ namespace ZipDeploy
             IUnzipper unzipper)
         {
             _logger = logger;
+            _lockProcess = lockProcess;
             _cleaner = cleaner;
             _detectPackage = detectPackage;
             _triggerRestart = triggerRestart;
@@ -35,6 +38,7 @@ namespace ZipDeploy
         Task IHostedService.StartAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Application startup");
+            _lockProcess.Lock();
 
             _logger.LogDebug("ZipDeploy wireup package detection");
             _detectPackage.PackageDetected += _triggerRestart.Trigger;

@@ -11,7 +11,7 @@ namespace ZipDeploy.TestApp3_1
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddZipDeploy(o => o.IgnorePathStarting("logs"));
+            services.AddZipDeploy(o => o.IgnorePathStarting("logs").UsingProcessLock(GetType().FullName));
             services.AddControllersWithViews();
         }
 

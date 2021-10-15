@@ -33,6 +33,9 @@ namespace ZipDeploy
 
             try
             {
+                var lockProcess = provider.GetRequiredService<ILockProcess>();
+                lockProcess.Lock();
+
                 var detectPackage = provider.GetRequiredService<IDetectPackage>();
                 var triggerRestart = provider.GetRequiredService<ITriggerRestart>();
                 detectPackage.PackageDetected += triggerRestart.Trigger;

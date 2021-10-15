@@ -15,6 +15,7 @@ namespace ZipDeploy
         public static IServiceCollection RegisterDefaults(this IServiceCollection services, ZipDeployOptions options)
         {
             services.AddSingleton(options);
+            services.AddSingleton<ILockProcess, LockProcess>();
             services.AddSingleton<IDetectPackage, DetectPackage>();
             services.AddSingleton<ITriggerRestart, AspNetRestart>();
             services.AddSingleton<ICleaner, Cleaner>();

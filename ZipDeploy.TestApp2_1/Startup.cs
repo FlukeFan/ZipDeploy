@@ -21,7 +21,7 @@ namespace ZipDeploy.TestApp2_1
         public void ConfigureServices(IServiceCollection services)
         {
             LoggerFactory.CreateLogger<Startup>().LogInformation("Startup ConfigureServices");
-            services.AddZipDeploy(o => o.IgnorePathStarting("logs"));
+            services.AddZipDeploy(o => o.IgnorePathStarting("logs").UsingProcessLock(GetType().FullName));
             services.AddMvc();
         }
 
