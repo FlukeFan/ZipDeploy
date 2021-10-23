@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using System;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -21,7 +22,7 @@ namespace ZipDeploy.TestApp2_1
         public void ConfigureServices(IServiceCollection services)
         {
             LoggerFactory.CreateLogger<Startup>().LogInformation("Startup ConfigureServices");
-            services.AddZipDeploy(o => o.IgnorePathStarting("logs").UsingProcessLock(GetType().FullName));
+            services.AddZipDeploy(o => o.IgnorePathStarting("logs").UsingProcessLock(GetType().FullName, TimeSpan.FromSeconds(20)));
             services.AddMvc();
         }
 

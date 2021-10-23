@@ -14,11 +14,13 @@ namespace ZipDeploy
     {
         private ILogger _logger;
         private ZipDeployOptions _options;
+        private ITriggerRestart _triggerRestart;
 
-        public LockProcess(ILogger<LockProcess> logger, ZipDeployOptions options)
+        public LockProcess(ILogger<LockProcess> logger, ZipDeployOptions options, ITriggerRestart triggerRestart)
         {
             _logger = logger;
             _options = options;
+            _triggerRestart = triggerRestart;
         }
 
         public virtual void Lock()
@@ -43,23 +45,42 @@ namespace ZipDeploy
 
             try
             {
+                var locked = false;
+
                 if (_options.ProcessLockTimeout.HasValue)
                 {
                     _logger.LogDebug($"Waiting on lock {semaphoreName} for {_options.ProcessLockTimeout}");
-                    semaphore.WaitOne(_options.ProcessLockTimeout.Value);
+                    locked = semaphore.WaitOne(_options.ProcessLockTimeout.Value);
                 }
                 else
                 {
                     _logger.LogDebug($"Waiting on lock {semaphoreName}");
-                    semaphore.WaitOne(Timeout.Infinite);
+                    locked = semaphore.WaitOne(Timeout.Infinite);
                 }
+
+                if (!locked)
+                    throw new Exception($"Failed to obtain lock");
             }
             catch(Exception ex)
             {
+                TryTriggerRestart();
                 throw new Exception($"Could not obtain lock {semaphoreName}", ex);
             }
 
             _logger.LogInformation($"Obtained lock {semaphoreName}");
+        }
+
+        private void TryTriggerRestart()
+        {
+            try
+            {
+                _logger.LogInformation($"Attempting to trigger restart after failing to obtain lock");
+                _triggerRestart.Trigger();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error attepting restart: {ex.Message}");
+            }
         }
     }
 }

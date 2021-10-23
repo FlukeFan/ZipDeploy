@@ -1,3 +1,4 @@
+using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,7 +12,7 @@ namespace ZipDeploy.TestApp3_1
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddZipDeploy(o => o.IgnorePathStarting("logs").UsingProcessLock(GetType().FullName));
+            services.AddZipDeploy(o => o.IgnorePathStarting("logs").UsingProcessLock(GetType().FullName, TimeSpan.FromSeconds(20)));
             services.AddControllersWithViews();
         }
 

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore;
+﻿using System;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Logging;
 using NLog;
@@ -31,7 +32,7 @@ namespace ZipDeploy.TestApp2_1Exe
 
             ZipDeploy.Run(
                 loggerFactory,
-                options => options.IgnorePathStarting("logs").UsingProcessLock(typeof(Program).FullName),
+                options => options.IgnorePathStarting("logs").UsingProcessLock(typeof(Program).FullName, TimeSpan.FromSeconds(20)),
                 () => BuildWebHost(args).Run());
         }
 

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.IO.Compression;
 using Microsoft.Extensions.Logging;
 
@@ -29,19 +30,27 @@ namespace ZipDeploy
         }
 
         /// <summary>Specify a named synchronization primitive to use (will be prefixed with Global\ and used to prevent multiple processes running at the same time).</summary>
-        public ZipDeployOptions UsingProcessLock(string name, TimeSpan? timeSpan = null)
+        public ZipDeployOptions UsingProcessLock(string name, TimeSpan? timeout = null)
         {
             ProcessLockName = name;
-            ProcessLockTimeout = timeSpan;
+            ProcessLockTimeout = timeout;
             return this;
         }
 
         internal void UsingArchive(ILogger logger, Action<ZipArchive> action)
         {
-            logger.LogDebug($"Opening {NewPackageFileName}");
+            if (File.Exists(NewPackageFileName))
+            {
+                logger.LogDebug($"Opening {NewPackageFileName}");
 
-            using (var zipArchive = ZipFile.OpenRead(NewPackageFileName))
-                action(zipArchive);
+                using (var zipArchive = ZipFile.OpenRead(NewPackageFileName))
+                    action(zipArchive);
+            }
+            else
+            {
+                logger.LogInformation($"{NewPackageFileName} not found");
+                action(null);
+            }
         }
     }
 }

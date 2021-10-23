@@ -44,7 +44,11 @@ namespace ZipDeploy
             _options.UsingArchive(_logger, zipArchive =>
             {
                 var webConfigContent = (string)null;
-                var webConfigEntry = zipArchive.GetEntry("web.config");
+
+                if (zipArchive == null)
+                    _logger.LogWarning($"Triggering restart when no zip archive detected");
+
+                var webConfigEntry = zipArchive?.GetEntry("web.config");
 
                 if (webConfigEntry != null && webConfigEntry.Length != 0)
                 {
@@ -63,7 +67,7 @@ namespace ZipDeploy
 
                 if (string.IsNullOrWhiteSpace(webConfigContent))
                 {
-                    _logger.LogDebug("Unable to find content for web.config to trigger restart");
+                    _logger.LogError("Unable to find content for web.config to trigger restart");
                     return;
                 }
 
