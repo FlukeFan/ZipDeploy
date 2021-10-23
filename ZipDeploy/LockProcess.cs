@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.Extensions.Logging;
@@ -39,27 +40,35 @@ namespace ZipDeploy
 
             var semaphoreName = $"Global\\{_options.ProcessLockName}";
 
-#pragma warning disable PC001 // API not supported on all platforms
-            var semaphore = new Semaphore(1, 1, semaphoreName, out _);
-#pragma warning restore PC001 // API not supported on all platforms
+            var logMessage = _options.ProcessLockTimeout.HasValue
+                ? $"Waiting on lock {semaphoreName} for {_options.ProcessLockTimeout}"
+                : $"Waiting on lock {semaphoreName}";
+
+            _logger.LogDebug(logMessage);
 
             try
             {
                 var locked = false;
+                var stopwatch = Stopwatch.StartNew();
 
-                if (_options.ProcessLockTimeout.HasValue)
+                while (!locked)
                 {
-                    _logger.LogDebug($"Waiting on lock {semaphoreName} for {_options.ProcessLockTimeout}");
-                    locked = semaphore.WaitOne(_options.ProcessLockTimeout.Value);
-                }
-                else
-                {
-                    _logger.LogDebug($"Waiting on lock {semaphoreName}");
-                    locked = semaphore.WaitOne(Timeout.Infinite);
-                }
+#pragma warning disable PC001 // API not supported on all platforms
+                    var semaphore = new Semaphore(1, 1, semaphoreName, out locked);
+#pragma warning restore PC001 // API not supported on all platforms
 
-                if (!locked)
-                    throw new Exception($"Failed to obtain lock");
+                    if (!locked)
+                    {
+                        // if we couldn't create a new (global) named semaphore
+                        // then another process has it, so we should dispose of this one and wait
+
+                        using (semaphore) { }
+                        Thread.Sleep(200);
+
+                        if (_options.ProcessLockTimeout.HasValue && stopwatch.Elapsed > _options.ProcessLockTimeout.Value)
+                            throw new Exception($"Could not create new Semaphore {semaphoreName}");
+                    }
+                }
             }
             catch(Exception ex)
             {
@@ -67,6 +76,8 @@ namespace ZipDeploy
                 throw new Exception($"Could not obtain lock {semaphoreName}", ex);
             }
 
+            // note, we deliberately don't dispose of the sempahore we create
+            // so that Windows will clear it up once the process dies (and so dll files should be unlocked by this point)
             _logger.LogInformation($"Obtained lock {semaphoreName}");
         }
 

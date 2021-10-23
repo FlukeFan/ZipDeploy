@@ -151,6 +151,8 @@ namespace ZipDeploy.Tests.TestApp
                 Get("http://localhost:8099").Should().Contain("Version=234");
                 Get("http://localhost:8099/test.js").Should().Contain("alert(234);");
 
+                Test.WriteProgress($"Verified version 234");
+
                 File.Exists(Path.Combine(iisFolder, ZipDeployOptions.DefaultNewPackageFileName)).Should().BeFalse("publish.zip should have been renamed to deployed.zip");
                 File.Exists(Path.Combine(iisFolder, ZipDeployOptions.DefaultDeployedPackageFileName)).Should().BeTrue("deployment should be complete, and publish.zip should have been renamed to deployed.zip");
                 File.Exists(Path.Combine(iisFolder, "zzz__ZipDeploy.dll.fordelete.txt")).Should().BeFalse("obsolete binaries should have been deleted on next startup");

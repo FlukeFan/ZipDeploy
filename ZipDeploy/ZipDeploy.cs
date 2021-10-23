@@ -31,33 +31,36 @@ namespace ZipDeploy
                 .RegisterDefaults(options)
                 .BuildServiceProvider();
 
-            try
+            using (provider)
             {
-                var lockProcess = provider.GetRequiredService<ILockProcess>();
-                lockProcess.Lock();
-
-                var detectPackage = provider.GetRequiredService<IDetectPackage>();
-                var triggerRestart = provider.GetRequiredService<ITriggerRestart>();
-                detectPackage.PackageDetected += triggerRestart.Trigger;
-
-                var cleaner = provider.GetRequiredService<ICleaner>();
-                cleaner.DeleteObsoleteFiles();
-                detectPackage.Started();
-                program();
-            }
-            finally
-            {
-                logger.Retry(options, "ZipDeploy before shutdown", () =>
+                try
                 {
-                    if (File.Exists(Path.Combine(Environment.CurrentDirectory, options.NewPackageFileName)))
-                    {
-                        logger.LogInformation("Found package {packageName}", options.NewPackageFileName);
-                        var unzipper = provider.GetRequiredService<IUnzipper>();
-                        unzipper.Unzip();
-                    }
+                    var lockProcess = provider.GetRequiredService<ILockProcess>();
+                    lockProcess.Lock();
 
-                    logger.LogDebug("ZipDeploy completed after process shutdown");
-                });
+                    var detectPackage = provider.GetRequiredService<IDetectPackage>();
+                    var triggerRestart = provider.GetRequiredService<ITriggerRestart>();
+                    detectPackage.PackageDetected += triggerRestart.Trigger;
+
+                    var cleaner = provider.GetRequiredService<ICleaner>();
+                    cleaner.DeleteObsoleteFiles();
+                    detectPackage.Started();
+                    program();
+                }
+                finally
+                {
+                    logger.Retry(options, "ZipDeploy before shutdown", () =>
+                    {
+                        if (File.Exists(Path.Combine(Environment.CurrentDirectory, options.NewPackageFileName)))
+                        {
+                            logger.LogInformation("Found package {packageName}", options.NewPackageFileName);
+                            var unzipper = provider.GetRequiredService<IUnzipper>();
+                            unzipper.Unzip();
+                        }
+
+                        logger.LogDebug("ZipDeploy completed after process shutdown");
+                    });
+                }
             }
         }
 
