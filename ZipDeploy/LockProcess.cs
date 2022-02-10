@@ -13,6 +13,7 @@ namespace ZipDeploy
 
     public class LockProcess : ILockProcess
     {
+        private Semaphore _semaphore;
         private ILogger _logger;
         private ZipDeployOptions _options;
         private ITriggerRestart _triggerRestart;
@@ -54,7 +55,7 @@ namespace ZipDeploy
                 while (!locked)
                 {
 #pragma warning disable PC001 // API not supported on all platforms
-                    var semaphore = new Semaphore(1, 1, semaphoreName, out locked);
+                    _semaphore = new Semaphore(1, 1, semaphoreName, out locked);
 #pragma warning restore PC001 // API not supported on all platforms
 
                     if (!locked)
@@ -62,7 +63,7 @@ namespace ZipDeploy
                         // if we couldn't create a new (global) named semaphore
                         // then another process has it, so we should dispose of this one and wait
 
-                        using (semaphore) { }
+                        using (_semaphore) { }
                         Thread.Sleep(200);
 
                         if (_options.ProcessLockTimeout.HasValue && stopwatch.Elapsed > _options.ProcessLockTimeout.Value)
