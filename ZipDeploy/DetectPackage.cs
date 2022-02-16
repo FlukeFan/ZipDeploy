@@ -33,26 +33,29 @@ namespace ZipDeploy
             _logger.LogInformation($"Watching for {options.NewPackageFileName} in {Environment.CurrentDirectory}");
         }
 
-        public virtual async Task StartedAsync()
+        public virtual Task StartedAsync()
         {
             if (File.Exists(_options.NewPackageFileName))
             {
                 _logger.LogInformation($"Found {_options.NewPackageFileName} at startup - waiting {_options.StartupPublishDelay} to trigger restart");
 
-                await Task.Run(async () =>
+                // don't wait on this task - it should run in the background, and trigger after the appropriate period
+                Task.Run(async () =>
                 {
                     await Task.Delay(_options.StartupPublishDelay);
-                    await OnPackageDetectedAsync(null);
+                    await OnPackageDetectedAsync(this, null);
                 });
             }
+
+            return Task.CompletedTask;
         }
 
         protected virtual void OnPackageDetected(object sender, FileSystemEventArgs e)
         {
-            OnPackageDetectedAsync(e).GetAwaiter().GetResult();
+            OnPackageDetectedAsync(sender, e).GetAwaiter().GetResult();
         }
 
-        protected virtual async Task OnPackageDetectedAsync(FileSystemEventArgs e)
+        protected virtual async Task OnPackageDetectedAsync(object sender, FileSystemEventArgs e)
         {
             _logger.LogInformation("Detected installation package");
 
