@@ -38,19 +38,19 @@ namespace ZipDeploy
             return this;
         }
 
-        internal async Task UsingArchiveAsync(ILogger logger, Func<ZipArchive, Task> action)
+        internal async Task UsingArchiveAsync(ILogger logger, Func<ZipArchive, Task> actionAsync)
         {
             if (File.Exists(NewPackageFileName))
             {
                 logger.LogDebug($"Opening {NewPackageFileName}");
 
                 using (var zipArchive = ZipFile.OpenRead(NewPackageFileName))
-                    await action(zipArchive);
+                    await actionAsync(zipArchive);
             }
             else
             {
                 logger.LogInformation($"{NewPackageFileName} not found");
-                await action(null);
+                await actionAsync(null);
             }
         }
     }

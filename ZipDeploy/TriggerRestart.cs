@@ -37,7 +37,7 @@ namespace ZipDeploy
             using (var semaphore = new SemaphoreSlim(0, 1))
             {
                 _canPauseTrigger.Release(semaphore);
-                semaphore.Wait();
+                await semaphore.WaitAsync();
             }
 
             _logger.LogInformation("Triggering restart");
@@ -58,7 +58,7 @@ namespace ZipDeploy
                     using (var zipFileContext = webConfigEntry.Open())
                     using (var ms = new MemoryStream())
                     {
-                        zipFileContext.CopyTo(ms);
+                        await zipFileContext.CopyToAsync(ms);
                         webConfigContent = ms.ToArray();
                     }
                 }

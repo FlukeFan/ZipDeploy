@@ -32,13 +32,13 @@ namespace ZipDeploy
             _logger.LogInformation("Unzipping deployment package");
             var zippedFiles = new List<string>();
 
-            await UsingArchiveAsync((entries, fileHashes) =>
+            await UsingArchiveAsync(async (entries, fileHashes) =>
             {
                 foreach (var entry in entries)
                 {
                     var fullName = entry.Key;
                     zippedFiles.Add(_fsUtil.NormalisePath(fullName));
-                    Extract(fullName, entry.Value, fileHashes);
+                    await ExtractAsync(fullName, entry.Value, fileHashes);
                 }
             });
 
@@ -49,7 +49,7 @@ namespace ZipDeploy
             _logger.LogInformation("Completed unzipping of deployment package");
         }
 
-        protected virtual void Extract(string fullName, ZipArchiveEntry zipEntry, IDictionary<string, string> fileHashes)
+        protected virtual async Task ExtractAsync(string fullName, ZipArchiveEntry zipEntry, IDictionary<string, string> fileHashes)
         {
             using (var zipInput = zipEntry.Open())
             using (var md5 = MD5.Create())
@@ -77,13 +77,13 @@ namespace ZipDeploy
             using (var zipInput = zipEntry.Open())
             {
                 _logger.LogDebug($"extracting {fullName}");
-                zipInput.CopyTo(streamWriter);
+                await zipInput.CopyToAsync(streamWriter);
             }
         }
 
-        protected virtual async Task UsingArchiveAsync(Action<IDictionary<string, ZipArchiveEntry>, IDictionary<string, string>> action)
+        protected virtual async Task UsingArchiveAsync(Func<IDictionary<string, ZipArchiveEntry>, IDictionary<string, string>, Task> actionAsync)
         {
-            await _options.UsingArchiveAsync(_logger, zipArchive =>
+            await _options.UsingArchiveAsync(_logger, async zipArchive =>
             {
                 var entries = zipArchive.Entries
                     .Where(e => e.Length != 0)
@@ -100,13 +100,12 @@ namespace ZipDeploy
                         .ToDictionary(a => a[0], a => a[1]);
                 }
 
-                action(entries, fileHashes);
+                await actionAsync(entries, fileHashes);
 
                 var hashesStrings = fileHashes
                     .Select(kvp => $"{kvp.Key}|{kvp.Value}");
 
                 File.WriteAllLines(_options.HashesFileName, hashesStrings);
-                return Task.CompletedTask;
             });
         }
 

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
@@ -7,7 +6,7 @@ namespace ZipDeploy
 {
     public static class LoggerExtensions
     {
-        public static async Task RetryAsync(this ILogger logger, ZipDeployOptions options, string description, Func<Task> action)
+        public static async Task RetryAsync(this ILogger logger, ZipDeployOptions options, string description, Func<Task> actionAsync)
         {
             const int maxRetries = 3;
             var retryCount = 0;
@@ -17,7 +16,7 @@ namespace ZipDeploy
                 try
                 {
                     logger.LogDebug("Start {description}", description);
-                    await action();
+                    await actionAsync();
                     logger.LogDebug("Finish {description}", description);
                     return;
                 }
@@ -26,7 +25,7 @@ namespace ZipDeploy
                     retryCount++;
                     var level = retryCount < maxRetries ? LogLevel.Warning : LogLevel.Error;
                     logger.Log(level, ex, "Error {retryCount} during {description}: {error}", retryCount, description, ex?.ToString());
-                    Thread.Sleep(options.ErrorRetryPeriod);
+                    await Task.Delay(options.ErrorRetryPeriod);
                 }
             }
         }
