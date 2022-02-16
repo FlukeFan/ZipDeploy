@@ -1,12 +1,13 @@
 ﻿using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
 namespace ZipDeploy
 {
     public interface ICleaner
     {
-        void DeleteObsoleteFiles();
+        Task DeleteObsoleteFilesAsync();
     }
 
     public class Cleaner : ICleaner
@@ -20,7 +21,7 @@ namespace ZipDeploy
             _fsUtil = new FsUtil(logger);
         }
 
-        public virtual void DeleteObsoleteFiles()
+        public virtual Task DeleteObsoleteFilesAsync()
         {
             _logger.LogInformation("Deleting obsoleted files");
             var obsoleteFileCount = 0;
@@ -33,6 +34,7 @@ namespace ZipDeploy
                 }
 
             _logger.LogInformation("Deleted obsoleted files count={count}", obsoleteFileCount);
+            return Task.CompletedTask;
         }
     }
 }

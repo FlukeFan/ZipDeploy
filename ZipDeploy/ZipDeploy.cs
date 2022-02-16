@@ -49,7 +49,7 @@ namespace ZipDeploy
                     detectPackage.PackageDetectedAsync += triggerRestart.TriggerAsync;
 
                     var cleaner = provider.GetRequiredService<ICleaner>();
-                    cleaner.DeleteObsoleteFiles();
+                    await cleaner.DeleteObsoleteFilesAsync();
                     await detectPackage.StartedAsync();
                     program();
                 }

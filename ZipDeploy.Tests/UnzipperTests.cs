@@ -35,7 +35,7 @@ namespace ZipDeploy.Tests
         {
             ExistingFiles("binary1.dll", "binary2.exe");
 
-            CreateZip(ZipDeployOptions.DefaultNewPackageFileName, "binary1.dll", "binary2.exe");
+            await CreateZipAsync(ZipDeployOptions.DefaultNewPackageFileName, "binary1.dll", "binary2.exe");
 
             await NewUnzipper().UnzipAsync();
 
@@ -54,7 +54,7 @@ namespace ZipDeploy.Tests
 
             File.ReadAllText("zzz__binary.dll.fordelete.txt").Should().NotBe(expectedContent);
 
-            CreateZip(ZipDeployOptions.DefaultNewPackageFileName, @"binary.dll");
+            await CreateZipAsync(ZipDeployOptions.DefaultNewPackageFileName, @"binary.dll");
 
             await NewUnzipper().UnzipAsync();
 
@@ -66,7 +66,7 @@ namespace ZipDeploy.Tests
         {
             ExistingFiles("web.config");
 
-            CreateZip(ZipDeployOptions.DefaultNewPackageFileName, @"web.config");
+            await CreateZipAsync(ZipDeployOptions.DefaultNewPackageFileName, @"web.config");
 
             var restarter = new AspNetRestart(new LoggerFactory().CreateLogger<AspNetRestart>(), new ProcessWebConfig(), new CanPauseTrigger(), new ZipDeployOptions());
             await restarter.TriggerAsync();
@@ -79,7 +79,7 @@ namespace ZipDeploy.Tests
         {
             ExistingFiles();
 
-            CreateZip(ZipDeployOptions.DefaultNewPackageFileName, @"binary.dll", @"nonbinary.txt");
+            await CreateZipAsync(ZipDeployOptions.DefaultNewPackageFileName, @"binary.dll", @"nonbinary.txt");
 
             var unzipper = NewUnzipper();
             await unzipper.UnzipAsync();
@@ -88,7 +88,7 @@ namespace ZipDeploy.Tests
             File.SetLastWriteTimeUtc("binary.dll", existingModifiedDateTime);
             File.SetLastWriteTimeUtc("nonbinary.txt", existingModifiedDateTime);
 
-            CreateZip(ZipDeployOptions.DefaultNewPackageFileName, @"binary.dll", @"nonbinary.txt");
+            await CreateZipAsync(ZipDeployOptions.DefaultNewPackageFileName, @"binary.dll", @"nonbinary.txt");
 
             await unzipper.UnzipAsync();
 
@@ -101,7 +101,7 @@ namespace ZipDeploy.Tests
         {
             ExistingFiles(ZipDeployOptions.DefaultDeployedPackageFileName);
 
-            CreateZip(ZipDeployOptions.DefaultNewPackageFileName);
+            await CreateZipAsync(ZipDeployOptions.DefaultNewPackageFileName);
 
             await NewUnzipper().UnzipAsync();
 
@@ -115,7 +115,7 @@ namespace ZipDeploy.Tests
         {
             ExistingFiles("file1.dll", "legacy.dll");
 
-            CreateZip(ZipDeployOptions.DefaultNewPackageFileName, "file1.dll");
+            await CreateZipAsync(ZipDeployOptions.DefaultNewPackageFileName, "file1.dll");
 
             await NewUnzipper().UnzipAsync();
 
@@ -124,16 +124,16 @@ namespace ZipDeploy.Tests
         }
 
         [Test]
-        public void Sync_ObsoleteFilesAreRemoved()
+        public async Task Sync_ObsoleteFilesAreRemoved()
         {
             ExistingFiles(
                 "new.dll",
                 "zzz__obsolete.dll.fordelete.txt",
                 @"wwwroot\zzz__new.txt.fordelete.txt");
 
-            CreateZip(ZipDeployOptions.DefaultDeployedPackageFileName, "new.dll", @"wwwroot\new.txt");
+            await CreateZipAsync(ZipDeployOptions.DefaultDeployedPackageFileName, "new.dll", @"wwwroot\new.txt");
 
-            NewCleaner().DeleteObsoleteFiles();
+            await NewCleaner().DeleteObsoleteFilesAsync();
 
             File.Exists("zzz__obsolete.dll.fordelete.txt").Should().BeFalse("ZipDeploy should have deleted obsolete.dll.fordelete.txt");
             File.Exists(@"wwwroot\zzz__new.txt.fordelete.txt").Should().BeFalse("new.txt.fordelete.txt should have been removed");
@@ -144,7 +144,7 @@ namespace ZipDeploy.Tests
         {
             ExistingFiles(@"wwwroot\file1.txt");
 
-            CreateZip(ZipDeployOptions.DefaultNewPackageFileName,
+            await CreateZipAsync(ZipDeployOptions.DefaultNewPackageFileName,
                 @"file1.dll",
                 @"wwwroot\file1.txt",
                 @"wwwroot\file2.txt");
@@ -160,7 +160,7 @@ namespace ZipDeploy.Tests
         {
             ExistingFiles("file.txt", "file.dll");
 
-            CreateZip(ZipDeployOptions.DefaultNewPackageFileName, "FILE.TXT", "FILE.DLL");
+            await CreateZipAsync(ZipDeployOptions.DefaultNewPackageFileName, "FILE.TXT", "FILE.DLL");
 
             var unzipper = NewUnzipper();
             await unzipper.UnzipAsync();
@@ -178,7 +178,7 @@ namespace ZipDeploy.Tests
                 "uploads//sub/file2.dll",
                 "uploads2\\subfolder\\file3.txt");
 
-            CreateZip(ZipDeployOptions.DefaultNewPackageFileName, "file1.txt");
+            await CreateZipAsync(ZipDeployOptions.DefaultNewPackageFileName, "file1.txt");
 
             var unzipper = NewUnzipper(opt => opt
                 .IgnorePathStarting("log.txt")
@@ -236,7 +236,7 @@ namespace ZipDeploy.Tests
             }
         }
 
-        private void CreateZip(string zipFileName, params string[] files)
+        private async Task CreateZipAsync(string zipFileName, params string[] files)
         {
             var tmpFile = zipFileName + ".tmp";
 
@@ -248,7 +248,7 @@ namespace ZipDeploy.Tests
                     var entry = zipArchive.CreateEntry(file);
                     using (var entryStream = entry.Open())
                     using (var streamWriter = new StreamWriter(entryStream))
-                        streamWriter.Write($"zipped content of {file}");
+                        await streamWriter.WriteAsync($"zipped content of {file}");
                 }
             }
 

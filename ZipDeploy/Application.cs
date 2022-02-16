@@ -44,7 +44,7 @@ namespace ZipDeploy
             _detectPackage.PackageDetectedAsync += _triggerRestart.TriggerAsync;
 
             await _logger.RetryAsync(_options, "Delete obsolete files", () =>
-                { _cleaner.DeleteObsoleteFiles(); return Task.CompletedTask; });
+                _cleaner.DeleteObsoleteFilesAsync());
 
             await _logger.RetryAsync(_options, "Start package detection", () =>
                 _detectPackage.StartedAsync());
