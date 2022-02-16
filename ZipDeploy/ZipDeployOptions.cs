@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
 namespace ZipDeploy
@@ -37,19 +38,19 @@ namespace ZipDeploy
             return this;
         }
 
-        internal void UsingArchive(ILogger logger, Action<ZipArchive> action)
+        internal async Task UsingArchiveAsync(ILogger logger, Func<ZipArchive, Task> action)
         {
             if (File.Exists(NewPackageFileName))
             {
                 logger.LogDebug($"Opening {NewPackageFileName}");
 
                 using (var zipArchive = ZipFile.OpenRead(NewPackageFileName))
-                    action(zipArchive);
+                    await action(zipArchive);
             }
             else
             {
                 logger.LogInformation($"{NewPackageFileName} not found");
-                action(null);
+                await action(null);
             }
         }
     }

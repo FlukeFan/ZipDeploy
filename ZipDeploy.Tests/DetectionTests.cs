@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
@@ -35,7 +36,7 @@ namespace ZipDeploy.Tests
             var detected = false;
             var detector = NewDetectPackage();
 
-            detector.PackageDetected += () => detected = true;
+            detector.PackageDetectedAsync += () => { detected = true; return Task.CompletedTask; };
 
             detected.Should().Be(false);
 

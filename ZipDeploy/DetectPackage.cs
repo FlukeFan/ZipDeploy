@@ -8,8 +8,8 @@ namespace ZipDeploy
     /// <summary> Raises PackageDetected when <see cref="ZipDeployOptions.WatchFilter" /> changes </summary>
     public interface IDetectPackage
     {
-        event Action PackageDetected;
-        void Started();
+        event Func<Task> PackageDetectedAsync;
+        Task StartedAsync();
     }
 
     public class DetectPackage : IDetectPackage
@@ -18,7 +18,7 @@ namespace ZipDeploy
         private FileSystemWatcher _fsw;
         private ZipDeployOptions _options;
 
-        public event Action PackageDetected;
+        public event Func<Task> PackageDetectedAsync;
 
         public DetectPackage(ILogger<DetectPackage> logger, ZipDeployOptions options)
         {
@@ -33,27 +33,34 @@ namespace ZipDeploy
             _logger.LogInformation($"Watching for {options.NewPackageFileName} in {Environment.CurrentDirectory}");
         }
 
-        public virtual void Started()
+        public virtual async Task StartedAsync()
         {
             if (File.Exists(_options.NewPackageFileName))
             {
                 _logger.LogInformation($"Found {_options.NewPackageFileName} at startup - waiting {_options.StartupPublishDelay} to trigger restart");
 
-                Task.Run(async () =>
+                await Task.Run(async () =>
                 {
                     await Task.Delay(_options.StartupPublishDelay);
-                    OnPackageDetected(null, null);
+                    await OnPackageDetectedAsync(null);
                 });
             }
         }
 
         protected virtual void OnPackageDetected(object sender, FileSystemEventArgs e)
         {
+            OnPackageDetectedAsync(e).GetAwaiter().GetResult();
+        }
+
+        protected virtual async Task OnPackageDetectedAsync(FileSystemEventArgs e)
+        {
             _logger.LogInformation("Detected installation package");
 
-            _logger.Retry(_options, "zip file detected", () =>
+            await _logger.RetryAsync(_options, "zip file detected", async () =>
             {
-                PackageDetected?.Invoke();
+                if (PackageDetectedAsync != null)
+                    await PackageDetectedAsync();
+
                 _fsw.EnableRaisingEvents = false;
             });
         }

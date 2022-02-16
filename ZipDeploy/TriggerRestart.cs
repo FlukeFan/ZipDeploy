@@ -1,13 +1,14 @@
 ﻿using System;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
 namespace ZipDeploy
 {
     public interface ITriggerRestart
     {
-        void Trigger();
+        Task TriggerAsync();
     }
 
     public class AspNetRestart : ITriggerRestart
@@ -29,7 +30,7 @@ namespace ZipDeploy
             _options = options;
         }
 
-        public virtual void Trigger()
+        public virtual async Task TriggerAsync()
         {
             _logger.LogInformation("Awaiting trigger of restart");
 
@@ -41,7 +42,7 @@ namespace ZipDeploy
 
             _logger.LogInformation("Triggering restart");
 
-            _options.UsingArchive(_logger, zipArchive =>
+            await _options.UsingArchiveAsync(_logger, async zipArchive =>
             {
                 byte[] webConfigContent = null;
 
@@ -75,7 +76,7 @@ namespace ZipDeploy
                 }
 
                 _logger.LogDebug("Triggering restart by touching web.config");
-                webConfigContent = _processWebConfig.Process(webConfigContent);
+                webConfigContent = await _processWebConfig.ProcessAsync(webConfigContent);
                 File.WriteAllBytes("web.config", webConfigContent);
                 File.SetLastWriteTimeUtc("web.config", File.GetLastWriteTimeUtc("web.config") + TimeSpan.FromSeconds(1));
                 _options.PathsToIgnore.Add("web.config");

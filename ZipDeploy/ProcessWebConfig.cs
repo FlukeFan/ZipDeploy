@@ -1,15 +1,17 @@
-﻿namespace ZipDeploy
+﻿using System.Threading.Tasks;
+
+namespace ZipDeploy
 {
     public interface IProcessWebConfig
     {
-        byte[] Process(byte[] zippedConfig);
+        Task<byte[]> ProcessAsync(byte[] zippedConfig);
     }
 
     public class ProcessWebConfig : IProcessWebConfig
     {
-        public virtual byte[] Process(byte[] zippedConfig)
+        public virtual Task<byte[]> ProcessAsync(byte[] zippedConfig)
         {
-            return zippedConfig;
+            return Task.FromResult(zippedConfig);
         }
     }
 }

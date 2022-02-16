@@ -2,13 +2,14 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
 namespace ZipDeploy
 {
     public interface ILockProcess
     {
-        void Lock();
+        Task LockAsync();
     }
 
     public class LockProcess : ILockProcess
@@ -25,7 +26,7 @@ namespace ZipDeploy
             _triggerRestart = triggerRestart;
         }
 
-        public virtual void Lock()
+        public virtual async Task LockAsync()
         {
             if (string.IsNullOrWhiteSpace(_options.ProcessLockName))
             {
@@ -73,7 +74,7 @@ namespace ZipDeploy
             }
             catch(Exception ex)
             {
-                TryTriggerRestart();
+                await TryTriggerRestartAsync();
                 throw new Exception($"Could not obtain lock {semaphoreName}", ex);
             }
 
@@ -82,12 +83,12 @@ namespace ZipDeploy
             _logger.LogInformation($"Obtained lock {semaphoreName}");
         }
 
-        private void TryTriggerRestart()
+        private async Task TryTriggerRestartAsync()
         {
             try
             {
                 _logger.LogInformation($"Attempting to trigger restart after failing to obtain lock");
-                _triggerRestart.Trigger();
+                await _triggerRestart.TriggerAsync();
             }
             catch (Exception ex)
             {

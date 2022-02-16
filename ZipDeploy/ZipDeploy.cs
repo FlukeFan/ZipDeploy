@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -19,6 +20,11 @@ namespace ZipDeploy
 
         public static void Run(ILoggerFactory loggerFactory, Action<ZipDeployOptions> setupOptions, Action program)
         {
+            RunAsync(loggerFactory, setupOptions, program).GetAwaiter().GetResult();
+        }
+
+        public static async Task RunAsync(ILoggerFactory loggerFactory, Action<ZipDeployOptions> setupOptions, Action program)
+        {
             loggerFactory = loggerFactory ?? new LoggerFactory();
             var logger = loggerFactory.CreateLogger(typeof(ZipDeploy));
             logger.LogDebug("ZipDeploy starting");
@@ -36,26 +42,26 @@ namespace ZipDeploy
                 try
                 {
                     var lockProcess = provider.GetRequiredService<ILockProcess>();
-                    lockProcess.Lock();
+                    await lockProcess.LockAsync();
 
                     var detectPackage = provider.GetRequiredService<IDetectPackage>();
                     var triggerRestart = provider.GetRequiredService<ITriggerRestart>();
-                    detectPackage.PackageDetected += triggerRestart.Trigger;
+                    detectPackage.PackageDetectedAsync += triggerRestart.TriggerAsync;
 
                     var cleaner = provider.GetRequiredService<ICleaner>();
                     cleaner.DeleteObsoleteFiles();
-                    detectPackage.Started();
+                    await detectPackage.StartedAsync();
                     program();
                 }
                 finally
                 {
-                    logger.Retry(options, "ZipDeploy before shutdown", () =>
+                    await logger.RetryAsync(options, "ZipDeploy before shutdown", async () =>
                     {
                         if (File.Exists(Path.Combine(Environment.CurrentDirectory, options.NewPackageFileName)))
                         {
                             logger.LogInformation("Found package {packageName}", options.NewPackageFileName);
                             var unzipper = provider.GetRequiredService<IUnzipper>();
-                            unzipper.Unzip();
+                            await unzipper.UnzipAsync();
                         }
 
                         logger.LogDebug("ZipDeploy completed after process shutdown");

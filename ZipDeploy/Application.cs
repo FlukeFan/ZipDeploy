@@ -35,39 +35,35 @@ namespace ZipDeploy
             _unzipper = unzipper;
         }
 
-        Task IHostedService.StartAsync(CancellationToken cancellationToken)
+        async Task IHostedService.StartAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Application startup");
-            _lockProcess.Lock();
+            await _lockProcess.LockAsync();
 
             _logger.LogDebug("ZipDeploy wireup package detection");
-            _detectPackage.PackageDetected += _triggerRestart.Trigger;
+            _detectPackage.PackageDetectedAsync += _triggerRestart.TriggerAsync;
 
-            _logger.Retry(_options, "Delete obsolete files", () =>
-                _cleaner.DeleteObsoleteFiles());
+            await _logger.RetryAsync(_options, "Delete obsolete files", () =>
+                { _cleaner.DeleteObsoleteFiles(); return Task.CompletedTask; });
 
-            _logger.Retry(_options, "Start package detection", () =>
-                _detectPackage.Started());
-
-            return Task.CompletedTask;
+            await _logger.RetryAsync(_options, "Start package detection", () =>
+                _detectPackage.StartedAsync());
         }
 
-        Task IHostedService.StopAsync(CancellationToken cancellationToken)
+        async Task IHostedService.StopAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Application stopped");
 
-            _logger.Retry(_options, "ZipDeploy before shutdown", () =>
+            await _logger.RetryAsync(_options, "ZipDeploy before shutdown", async () =>
             {
                 if (File.Exists(Path.Combine(Environment.CurrentDirectory, _options.NewPackageFileName)))
                 {
                     _logger.LogDebug("Found package {packageName}", _options.NewPackageFileName);
-                    _unzipper.Unzip();
+                    await _unzipper.UnzipAsync();
                 }
 
                 _logger.LogDebug("ZipDeploy completed after process shutdown");
             });
-
-            return Task.CompletedTask;
         }
     }
 }

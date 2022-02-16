@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.IO.Compression;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
@@ -30,13 +31,13 @@ namespace ZipDeploy.Tests
         }
 
         [Test]
-        public void Unzip_BinariesAreRenamed()
+        public async Task Unzip_BinariesAreRenamed()
         {
             ExistingFiles("binary1.dll", "binary2.exe");
 
             CreateZip(ZipDeployOptions.DefaultNewPackageFileName, "binary1.dll", "binary2.exe");
 
-            NewUnzipper().Unzip();
+            await NewUnzipper().UnzipAsync();
 
             File.ReadAllText("binary1.dll").Should().Be("zipped content of binary1.dll");
             File.ReadAllText("zzz__binary1.dll.fordelete.txt").Should().Be("existing content of binary1.dll");
@@ -45,7 +46,7 @@ namespace ZipDeploy.Tests
         }
 
         [Test]
-        public void Unzip_ExistingMarkedDeleteFilesAreOverwritten()
+        public async Task Unzip_ExistingMarkedDeleteFilesAreOverwritten()
         {
             var expectedContent = "existing content of binary.dll";
 
@@ -55,33 +56,33 @@ namespace ZipDeploy.Tests
 
             CreateZip(ZipDeployOptions.DefaultNewPackageFileName, @"binary.dll");
 
-            NewUnzipper().Unzip();
+            await NewUnzipper().UnzipAsync();
 
             File.ReadAllText("zzz__binary.dll.fordelete.txt").Should().Be(expectedContent);
         }
 
         [Test]
-        public void Unzip_OverwritesWebConfig()
+        public async Task Unzip_OverwritesWebConfig()
         {
             ExistingFiles("web.config");
 
             CreateZip(ZipDeployOptions.DefaultNewPackageFileName, @"web.config");
 
             var restarter = new AspNetRestart(new LoggerFactory().CreateLogger<AspNetRestart>(), new ProcessWebConfig(), new CanPauseTrigger(), new ZipDeployOptions());
-            restarter.Trigger();
+            await restarter.TriggerAsync();
 
             File.ReadAllText("web.config").Should().Be("zipped content of web.config");
         }
 
         [Test]
-        public void Unzip_KeepsOriginalIfNoChanges()
+        public async Task Unzip_KeepsOriginalIfNoChanges()
         {
             ExistingFiles();
 
             CreateZip(ZipDeployOptions.DefaultNewPackageFileName, @"binary.dll", @"nonbinary.txt");
 
             var unzipper = NewUnzipper();
-            unzipper.Unzip();
+            await unzipper.UnzipAsync();
 
             var existingModifiedDateTime = DateTime.UtcNow - TimeSpan.FromHours(3);
             File.SetLastWriteTimeUtc("binary.dll", existingModifiedDateTime);
@@ -89,20 +90,20 @@ namespace ZipDeploy.Tests
 
             CreateZip(ZipDeployOptions.DefaultNewPackageFileName, @"binary.dll", @"nonbinary.txt");
 
-            unzipper.Unzip();
+            await unzipper.UnzipAsync();
 
             File.GetLastWriteTimeUtc("binary.dll").Should().Be(existingModifiedDateTime);
             File.GetLastWriteTimeUtc("nonbinary.txt").Should().Be(existingModifiedDateTime);
         }
 
         [Test]
-        public void Unzip_OverwritesExistingDeployedArchive()
+        public async Task Unzip_OverwritesExistingDeployedArchive()
         {
             ExistingFiles(ZipDeployOptions.DefaultDeployedPackageFileName);
 
             CreateZip(ZipDeployOptions.DefaultNewPackageFileName);
 
-            NewUnzipper().Unzip();
+            await NewUnzipper().UnzipAsync();
 
             File.Exists(ZipDeployOptions.DefaultNewPackageFileName).Should().BeFalse("publish.zip should have been renamed");
             File.Exists(ZipDeployOptions.DefaultDeployedPackageFileName).Should().BeTrue("publish.zip should have been renamed to deployed.zip");
@@ -110,13 +111,13 @@ namespace ZipDeploy.Tests
         }
 
         [Test]
-        public void Unzip_RenamesObsoleteBinaries()
+        public async Task Unzip_RenamesObsoleteBinaries()
         {
             ExistingFiles("file1.dll", "legacy.dll");
 
             CreateZip(ZipDeployOptions.DefaultNewPackageFileName, "file1.dll");
 
-            NewUnzipper().Unzip();
+            await NewUnzipper().UnzipAsync();
 
             File.ReadAllText("file1.dll").Should().Be("zipped content of file1.dll");
             File.Exists("legacy.dll").Should().BeFalse("obsolete legacy.dll should have been renamed");
@@ -139,7 +140,7 @@ namespace ZipDeploy.Tests
         }
 
         [Test]
-        public void Unzip_NonBinariesAreExtracted()
+        public async Task Unzip_NonBinariesAreExtracted()
         {
             ExistingFiles(@"wwwroot\file1.txt");
 
@@ -148,28 +149,28 @@ namespace ZipDeploy.Tests
                 @"wwwroot\file1.txt",
                 @"wwwroot\file2.txt");
 
-            NewUnzipper().Unzip();
+            await NewUnzipper().UnzipAsync();
 
             File.ReadAllText(@"wwwroot\file1.txt").Should().Be(@"zipped content of wwwroot\file1.txt");
             File.ReadAllText(@"wwwroot\file2.txt").Should().Be(@"zipped content of wwwroot\file2.txt");
         }
 
         [Test]
-        public void CaseInsensitiveFilesAreHandled()
+        public async Task CaseInsensitiveFilesAreHandled()
         {
             ExistingFiles("file.txt", "file.dll");
 
             CreateZip(ZipDeployOptions.DefaultNewPackageFileName, "FILE.TXT", "FILE.DLL");
 
             var unzipper = NewUnzipper();
-            unzipper.Unzip();
+            await unzipper.UnzipAsync();
 
             File.ReadAllText("FILE.TXT").Should().Be("zipped content of FILE.TXT");
             File.ReadAllText("FILE.DLL").Should().Be("zipped content of FILE.DLL");
         }
 
         [Test]
-        public void PathsCanBeExcluded()
+        public async Task PathsCanBeExcluded()
         {
             ExistingFiles(
                 "log.txt",
@@ -184,7 +185,7 @@ namespace ZipDeploy.Tests
                 .IgnorePathStarting("uploads\\sub")
                 .IgnorePathStarting("uploads2\\subfolder"));
 
-            unzipper.Unzip();
+            await unzipper.UnzipAsync();
 
             File.Exists("file1.txt").Should().BeTrue("unzip should have extracted file1.txt");
             File.Exists("log.txt").Should().BeTrue("log.txt should have been ignored");

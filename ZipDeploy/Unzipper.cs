@@ -4,13 +4,14 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 
 namespace ZipDeploy
 {
     public interface IUnzipper
     {
-        void Unzip();
+        Task UnzipAsync();
     }
 
     public class Unzipper : IUnzipper
@@ -26,12 +27,12 @@ namespace ZipDeploy
             _fsUtil = new FsUtil(logger);
         }
 
-        public virtual void Unzip()
+        public virtual async Task UnzipAsync()
         {
             _logger.LogInformation("Unzipping deployment package");
             var zippedFiles = new List<string>();
 
-            UsingArchive((entries, fileHashes) =>
+            await UsingArchiveAsync((entries, fileHashes) =>
             {
                 foreach (var entry in entries)
                 {
@@ -80,9 +81,9 @@ namespace ZipDeploy
             }
         }
 
-        protected virtual void UsingArchive(Action<IDictionary<string, ZipArchiveEntry>, IDictionary<string, string>> action)
+        protected virtual async Task UsingArchiveAsync(Action<IDictionary<string, ZipArchiveEntry>, IDictionary<string, string>> action)
         {
-            _options.UsingArchive(_logger, zipArchive =>
+            await _options.UsingArchiveAsync(_logger, zipArchive =>
             {
                 var entries = zipArchive.Entries
                     .Where(e => e.Length != 0)
@@ -105,6 +106,7 @@ namespace ZipDeploy
                     .Select(kvp => $"{kvp.Key}|{kvp.Value}");
 
                 File.WriteAllLines(_options.HashesFileName, hashesStrings);
+                return Task.CompletedTask;
             });
         }
 
