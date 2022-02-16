@@ -20,10 +20,21 @@ namespace ZipDeploy
 
         public static void Run(ILoggerFactory loggerFactory, Action<ZipDeployOptions> setupOptions, Action program)
         {
-            RunAsync(loggerFactory, setupOptions, program).GetAwaiter().GetResult();
+            Func<Task> sync = () => { program(); return Task.CompletedTask; };
+            RunAsync(loggerFactory, setupOptions, sync).GetAwaiter().GetResult();
         }
 
-        public static async Task RunAsync(ILoggerFactory loggerFactory, Action<ZipDeployOptions> setupOptions, Action program)
+        public static async Task RunAsync(Func<Task> programAsync)
+        {
+            await RunAsync(null, null, programAsync);
+        }
+
+        public static async Task RunAsync(Action<ZipDeployOptions> setupOptions, Func<Task> programAsync)
+        {
+            await RunAsync(null, setupOptions, programAsync);
+        }
+
+        public static async Task RunAsync(ILoggerFactory loggerFactory, Action<ZipDeployOptions> setupOptions, Func<Task> programAsync)
         {
             loggerFactory = loggerFactory ?? new LoggerFactory();
             var logger = loggerFactory.CreateLogger(typeof(ZipDeploy));
@@ -51,7 +62,7 @@ namespace ZipDeploy
                     var cleaner = provider.GetRequiredService<ICleaner>();
                     await cleaner.DeleteObsoleteFilesAsync();
                     await detectPackage.StartedAsync();
-                    program();
+                    await programAsync();
                 }
                 finally
                 {
