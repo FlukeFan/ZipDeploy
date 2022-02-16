@@ -65,7 +65,7 @@ namespace ZipDeploy
                         // then another process has it, so we should dispose of this one and wait
 
                         using (_semaphore) { }
-                        Thread.Sleep(200);
+                        await Task.Delay(200);
 
                         if (_options.ProcessLockTimeout.HasValue && stopwatch.Elapsed > _options.ProcessLockTimeout.Value)
                             throw new Exception($"Could not create new Semaphore {semaphoreName}");
