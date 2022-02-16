@@ -43,7 +43,7 @@ namespace ZipDeploy
 
             _options.UsingArchive(_logger, zipArchive =>
             {
-                var webConfigContent = (string)null;
+                byte[] webConfigContent = null;
 
                 if (zipArchive == null)
                     _logger.LogWarning($"Triggering restart when no zip archive detected");
@@ -55,17 +55,20 @@ namespace ZipDeploy
                     _logger.LogDebug("Found web.config content in package");
 
                     using (var zipFileContext = webConfigEntry.Open())
-                    using (var sr = new StreamReader(zipFileContext))
-                        webConfigContent = sr.ReadToEnd();
+                    using (var ms = new MemoryStream())
+                    {
+                        zipFileContext.CopyTo(ms);
+                        webConfigContent = ms.ToArray();
+                    }
                 }
 
-                if (string.IsNullOrWhiteSpace(webConfigContent) && File.Exists("web.config"))
+                if (webConfigContent == null && File.Exists("web.config"))
                 {
                     _logger.LogDebug("Using existing web.config content");
-                    webConfigContent = File.ReadAllText("web.config");
+                    webConfigContent = File.ReadAllBytes("web.config");
                 }
 
-                if (string.IsNullOrWhiteSpace(webConfigContent))
+                if (webConfigContent == null)
                 {
                     _logger.LogError("Unable to find content for web.config to trigger restart");
                     return;
@@ -73,7 +76,7 @@ namespace ZipDeploy
 
                 _logger.LogDebug("Triggering restart by touching web.config");
                 webConfigContent = _processWebConfig.Process(webConfigContent);
-                File.WriteAllText("web.config", webConfigContent);
+                File.WriteAllBytes("web.config", webConfigContent);
                 File.SetLastWriteTimeUtc("web.config", File.GetLastWriteTimeUtc("web.config") + TimeSpan.FromSeconds(1));
                 _options.PathsToIgnore.Add("web.config");
             });

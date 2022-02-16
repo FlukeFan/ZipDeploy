@@ -2,12 +2,12 @@
 {
     public interface IProcessWebConfig
     {
-        string Process(string zippedConfig);
+        byte[] Process(byte[] zippedConfig);
     }
 
     public class ProcessWebConfig : IProcessWebConfig
     {
-        public virtual string Process(string zippedConfig)
+        public virtual byte[] Process(byte[] zippedConfig)
         {
             return zippedConfig;
         }
