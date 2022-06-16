@@ -73,12 +73,12 @@ namespace ZipDeploy
 
         protected virtual void OnPackageDetected(object sender, FileSystemEventArgs e)
         {
-            OnPackageDetectedAsync(sender, e).GetAwaiter().GetResult();
+            OnPackageDetectedAsync(sender, e, "Detected installation package").GetAwaiter().GetResult();
         }
 
-        protected virtual async Task OnPackageDetectedAsync(object sender, FileSystemEventArgs e, string reason = null)
+        protected virtual async Task OnPackageDetectedAsync(object sender, FileSystemEventArgs e, string reason)
         {
-            _logger.LogInformation($"OnPackageDetectedAsync: {reason ?? "Detected installation package"}");
+            _logger.LogInformation($"OnPackageDetectedAsync: {reason}");
 
             await _logger.RetryAsync(_options, "zip file detected", async () =>
             {
