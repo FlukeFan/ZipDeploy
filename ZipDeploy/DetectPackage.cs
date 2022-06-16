@@ -9,7 +9,7 @@ namespace ZipDeploy
     public interface IDetectPackage
     {
         event Func<Task> PackageDetectedAsync;
-        Task StartedAsync();
+        Task StartedAsync(bool hadStartupErrors);
     }
 
     public class DetectPackage : IDetectPackage
@@ -29,15 +29,30 @@ namespace ZipDeploy
             _fsw.Created += OnPackageDetected;
             _fsw.Changed += OnPackageDetected;
             _fsw.Renamed += OnPackageDetected;
+            _fsw.Error += OnError;
             _fsw.EnableRaisingEvents = true;
             _logger.LogInformation($"Watching for {options.NewPackageFileName} in {Environment.CurrentDirectory}");
         }
 
-        public virtual Task StartedAsync()
+        public virtual Task StartedAsync(bool hadStartupErrors)
         {
-            if (File.Exists(_options.NewPackageFileName))
+            var restart = false;
+            var restartReason = string.Empty;
+
+            if (hadStartupErrors && _options.RestartOnStartupError)
             {
-                _logger.LogInformation($"Found {_options.NewPackageFileName} at startup - waiting {_options.StartupPublishDelay} to trigger restart");
+                restartReason = $"Error during startup";
+                restart = true;
+            }
+            else if (File.Exists(_options.NewPackageFileName))
+            {
+                restartReason = $"Found {_options.NewPackageFileName} at startup";
+                restart = true;
+            }
+
+            if (restart)
+            {
+                _logger.LogInformation($"{restartReason} - waiting {_options.StartupPublishDelay} to trigger restart");
 
                 // don't wait on this task - it should run in the background, and trigger after the appropriate period
                 Task.Run(async () =>
@@ -48,6 +63,12 @@ namespace ZipDeploy
             }
 
             return Task.CompletedTask;
+        }
+
+        private void OnError(object sender, ErrorEventArgs e)
+        {
+            var ex = e?.GetException();
+            _logger.LogError(ex, $"Error in FileSystemWatcher: {ex?.Message}");
         }
 
         protected virtual void OnPackageDetected(object sender, FileSystemEventArgs e)

@@ -37,17 +37,21 @@ namespace ZipDeploy
 
         async Task IHostedService.StartAsync(CancellationToken cancellationToken)
         {
+            var hadStartupErrors = false;
             _logger.LogInformation("Application startup");
             await _lockProcess.LockAsync();
 
             _logger.LogDebug("ZipDeploy wireup package detection");
             _detectPackage.PackageDetectedAsync += _triggerRestart.TriggerAsync;
 
-            await _logger.RetryAsync(_options, "Delete obsolete files", () =>
-                _cleaner.DeleteObsoleteFilesAsync());
+            var deleteObsoleteFilesResult =
+                await _logger.RetryAsync(_options, "Delete obsolete files", () =>
+                    _cleaner.DeleteObsoleteFilesAsync());
+
+            hadStartupErrors = hadStartupErrors || deleteObsoleteFilesResult == RetryResult.Failure;
 
             await _logger.RetryAsync(_options, "Start package detection", () =>
-                _detectPackage.StartedAsync());
+                _detectPackage.StartedAsync(hadStartupErrors));
         }
 
         async Task IHostedService.StopAsync(CancellationToken cancellationToken)

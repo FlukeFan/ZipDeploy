@@ -22,6 +22,7 @@ namespace ZipDeploy
         public TimeSpan             ErrorRetryPeriod        { get; set; } = TimeSpan.FromMilliseconds(500);
         public string               ProcessLockName         { get; set; }
         public TimeSpan?            ProcessLockTimeout      { get; set; }
+        public bool                 RestartOnStartupError   { get; set; } = true;
 
         /// <summary>Specify any paths to ignore (e.g., "log.txt", or "logs/", or "uploads\today")</summary>
         public ZipDeployOptions IgnorePathStarting(string path)

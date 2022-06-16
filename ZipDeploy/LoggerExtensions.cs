@@ -4,9 +4,23 @@ using Microsoft.Extensions.Logging;
 
 namespace ZipDeploy
 {
+    public enum RetryResult
+    {
+        Success,
+        Failure,
+    }
+
     public static class LoggerExtensions
     {
-        public static async Task RetryAsync(this ILogger logger, ZipDeployOptions options, string description, Func<Task> actionAsync)
+        /// <summary>
+        /// Returns true if there was an error
+        /// </summary>
+        /// <param name="logger"></param>
+        /// <param name="options"></param>
+        /// <param name="description"></param>
+        /// <param name="actionAsync"></param>
+        /// <returns></returns>
+        public static async Task<RetryResult> RetryAsync(this ILogger logger, ZipDeployOptions options, string description, Func<Task> actionAsync)
         {
             const int maxRetries = 3;
             var retryCount = 0;
@@ -18,7 +32,7 @@ namespace ZipDeploy
                     logger.LogDebug("Start {description}", description);
                     await actionAsync();
                     logger.LogDebug("Finish {description}", description);
-                    return;
+                    return RetryResult.Success;
                 }
                 catch (Exception ex)
                 {
@@ -28,6 +42,8 @@ namespace ZipDeploy
                     await Task.Delay(options.ErrorRetryPeriod);
                 }
             }
+
+            return RetryResult.Failure;
         }
     }
 }

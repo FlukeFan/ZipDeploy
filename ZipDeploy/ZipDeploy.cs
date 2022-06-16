@@ -61,7 +61,7 @@ namespace ZipDeploy
 
                     var cleaner = provider.GetRequiredService<ICleaner>();
                     await cleaner.DeleteObsoleteFilesAsync();
-                    await detectPackage.StartedAsync();
+                    await detectPackage.StartedAsync(hadStartupErrors: false);
                     await programAsync();
                 }
                 finally
