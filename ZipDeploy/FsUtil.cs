@@ -7,6 +7,9 @@ namespace ZipDeploy
 {
     public class FsUtil
     {
+        public const string ForDeletePrefix = "zzz__";
+        public const string ForDeletePostfix = ".fordelete.txt";
+
         private ILogger _logger;
 
         public FsUtil(ILogger logger)
@@ -42,7 +45,7 @@ namespace ZipDeploy
 
             var fileName = Path.GetFileName(fullName);
             var path = Path.GetDirectoryName(fullName);
-            var destinationFile = Path.Combine(path, $"zzz__{fileName}.fordelete.txt");
+            var destinationFile = Path.Combine(path, $"{ForDeletePrefix}{fileName}{ForDeletePostfix}");
 
             DeleteFile(destinationFile);
             MoveFile(fullName, destinationFile);
@@ -50,7 +53,7 @@ namespace ZipDeploy
 
         public bool IsForDelete(string fullName)
         {
-            return Path.GetFileName(fullName).StartsWith("zzz__") && fullName.EndsWith(".fordelete.txt");
+            return Path.GetFileName(fullName).StartsWith(ForDeletePrefix) && fullName.EndsWith(ForDeletePostfix);
         }
 
         private void Try(Action action, Func<bool> notComplete, string what)
