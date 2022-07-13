@@ -50,7 +50,7 @@ namespace ZipDeploy
 
         public bool IsForDelete(string fullName)
         {
-            return Path.GetFileName(fullName).StartsWith("zzz_") && fullName.EndsWith(".fordelete.txt");
+            return Path.GetFileName(fullName).StartsWith("zzz__") && fullName.EndsWith(".fordelete.txt");
         }
 
         private void Try(Action action, Func<bool> notComplete, string what)
