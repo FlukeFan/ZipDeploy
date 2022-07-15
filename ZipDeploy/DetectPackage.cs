@@ -15,8 +15,8 @@ namespace ZipDeploy
     public class DetectPackage : IDetectPackage
     {
         private ILogger<DetectPackage> _logger;
-        private FileSystemWatcher _fsw;
         private ZipDeployOptions _options;
+        private FileSystemWatcher _fsw;
 
         public event Func<Task> PackageDetectedAsync;
 
@@ -24,18 +24,17 @@ namespace ZipDeploy
         {
             _logger = logger;
             _options = options;
+        }
 
-            _fsw = new FileSystemWatcher(Environment.CurrentDirectory, options.NewPackageFileName);
+        public virtual Task StartedAsync(bool hadStartupErrors)
+        {
+            _fsw = new FileSystemWatcher(Environment.CurrentDirectory, _options.NewPackageFileName);
             _fsw.Created += OnPackageDetected;
             _fsw.Changed += OnPackageDetected;
             _fsw.Renamed += OnPackageDetected;
             _fsw.Error += OnError;
             _fsw.EnableRaisingEvents = true;
-            _logger.LogInformation($"Watching for {options.NewPackageFileName} in {Environment.CurrentDirectory}");
-        }
 
-        public virtual Task StartedAsync(bool hadStartupErrors)
-        {
             var restart = false;
             var restartReason = string.Empty;
 
@@ -60,6 +59,10 @@ namespace ZipDeploy
                     await Task.Delay(_options.StartupPublishDelay);
                     await OnPackageDetectedAsync(this, null, restartReason);
                 });
+            }
+            else
+            {
+                _logger.LogInformation($"Watching for {_options.NewPackageFileName} in {Environment.CurrentDirectory}");
             }
 
             return Task.CompletedTask;

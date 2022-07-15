@@ -31,12 +31,13 @@ namespace ZipDeploy.Tests
         }
 
         [Test]
-        public void WhenPackageDeplyed_PackageIsDetected()
+        public async Task WhenPackageDeplyed_PackageIsDetected()
         {
             var detected = false;
             var detector = NewDetectPackage();
 
             detector.PackageDetectedAsync += () => { detected = true; return Task.CompletedTask; };
+            await detector.StartedAsync(hadStartupErrors: false);
 
             detected.Should().Be(false);
 
