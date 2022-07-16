@@ -195,14 +195,6 @@ namespace ZipDeploy.Tests
         }
 
         [Test]
-        public void PathWithoutExtension()
-        {
-            Unzipper.PathWithoutExtension("test.dll").Should().Be("test");
-            Unzipper.PathWithoutExtension(@"wwwroot\test.txt").Should().Be(@"wwwroot\test");
-            Unzipper.PathWithoutExtension(@"wwwroot\test.dll.dll").Should().Be(@"wwwroot\test");
-        }
-
-        [Test]
         public void ZipDeploy_RegistrationIsComplete()
         {
             ZipDeploy.Run(

@@ -109,19 +109,6 @@ namespace ZipDeploy
             });
         }
 
-        public static string PathWithoutExtension(string file)
-        {
-            var extension = Path.GetExtension(file);
-
-            while (!string.IsNullOrEmpty(extension))
-            {
-                file = file.Substring(0, file.Length - extension.Length);
-                extension = Path.GetExtension(file);
-            }
-
-            return file;
-        }
-
         protected virtual void RenameObsoleteFiles(IList<string> zippedFiles)
         {
             foreach (var fullName in Directory.GetFiles(".", "*", SearchOption.AllDirectories).Select(f => _fsUtil.NormalisePath(f)))
