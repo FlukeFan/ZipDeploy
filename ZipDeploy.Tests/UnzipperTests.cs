@@ -124,6 +124,21 @@ namespace ZipDeploy.Tests
         }
 
         [Test]
+        public async Task Unzip_ExtractsMissingFilesWithHash()
+        {
+            await CreateZipAsync(ZipDeployOptions.DefaultNewPackageFileName, "file1.dll");
+
+            await NewUnzipper().UnzipAsync();
+
+            File.Delete("file1.dll");
+            File.Move(ZipDeployOptions.DefaultDeployedPackageFileName, ZipDeployOptions.DefaultNewPackageFileName);
+
+            await NewUnzipper().UnzipAsync();
+
+            File.Exists("file1.dll").Should().BeTrue();
+        }
+
+        [Test]
         public async Task Sync_ObsoleteFilesAreRemoved()
         {
             ExistingFiles(

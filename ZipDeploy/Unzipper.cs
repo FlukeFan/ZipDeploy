@@ -57,7 +57,7 @@ namespace ZipDeploy
                 var fileHashBytes = md5.ComputeHash(zipInput);
                 var fileHash = BitConverter.ToString(fileHashBytes);
 
-                if (fileHashes.ContainsKey(fullName) && fileHash == fileHashes[fullName])
+                if (fileHashes.ContainsKey(fullName) && fileHash == fileHashes[fullName] && File.Exists(fullName))
                 {
                     _logger.LogDebug($"no changes detected - skipping {fullName}");
                     return;
