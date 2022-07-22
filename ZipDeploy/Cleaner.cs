@@ -23,8 +23,9 @@ namespace ZipDeploy
 
         public virtual Task DeleteObsoleteFilesAsync()
         {
-            _logger.LogInformation("Deleting obsoleted files");
+            _logger.LogInformation("Deleting obsoleted files and directories");
             var obsoleteFileCount = 0;
+            var obsoleteDirectoryCount = 0;
 
             foreach (var fullName in Directory.GetFiles(".", "*", SearchOption.AllDirectories).Select(f => _fsUtil.NormalisePath(f)))
                 if (_fsUtil.IsForDelete(fullName))
@@ -33,7 +34,14 @@ namespace ZipDeploy
                     obsoleteFileCount++;
                 }
 
-            _logger.LogInformation("Deleted obsoleted files count={count}", obsoleteFileCount);
+            foreach (var fullName in Directory.GetDirectories(".", "*", SearchOption.AllDirectories).Select(f => _fsUtil.NormalisePath(f)))
+                if (_fsUtil.IsForDelete(fullName))
+                {
+                    _fsUtil.DeleteDirectory(fullName);
+                    obsoleteDirectoryCount++;
+                }
+
+            _logger.LogInformation("Deleted {obsoleteFileCount} obsolete files and {obsoleteDirectoryCount} obsolete directories", obsoleteFileCount, obsoleteDirectoryCount);
             return Task.CompletedTask;
         }
     }

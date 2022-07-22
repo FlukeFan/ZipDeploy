@@ -155,6 +155,17 @@ namespace ZipDeploy.Tests
         }
 
         [Test]
+        public async Task Sync_ObsoleteFoldersAreRemoved()
+        {
+            ExistingFiles(
+                @"wwwroot\zzz__old.txt.fordelete.txt\tmp.txt");
+
+            await NewCleaner().DeleteObsoleteFilesAsync();
+
+            Directory.Exists("wwwroot\\zzz__old.txt.fordelete.txt").Should().BeFalse("Cleaner should have removed obsolete folder");
+        }
+
+        [Test]
         public async Task Unzip_NonBinariesAreExtracted()
         {
             ExistingFiles(@"wwwroot\file1.txt");

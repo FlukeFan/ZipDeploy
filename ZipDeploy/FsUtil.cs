@@ -38,6 +38,13 @@ namespace ZipDeploy
                 $"moving file {file} to {destinationFile}");
         }
 
+        public void DeleteDirectory(string directory)
+        {
+            Try(() => Directory.Delete(directory, true),
+                () => Directory.Exists(directory),
+                $"delete directory {directory}");
+        }
+
         public void MoveDirectory(string directory, string destinationDirectory)
         {
             Try(() => Directory.Move(directory, destinationDirectory),
