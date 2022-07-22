@@ -38,7 +38,7 @@ namespace ZipDeploy
                 {
                     retryCount++;
                     var level = retryCount < maxRetries ? LogLevel.Warning : LogLevel.Error;
-                    logger.Log(level, ex, "Error {retryCount} during {description}: {error}", retryCount, description, ex?.ToString());
+                    logger.Log(level, ex, "Error {retryCount} during {description}: {error}", retryCount, description, ex?.Message);
                     await Task.Delay(options.ErrorRetryPeriod);
                 }
             }

@@ -47,7 +47,7 @@ namespace ZipDeploy
             var path = Path.GetDirectoryName(fullName);
             var destinationFile = Path.Combine(path, $"{ForDeletePrefix}{fileName}{ForDeletePostfix}");
 
-            DeleteFile(destinationFile);
+            PrepareForDelete(destinationFile);
             MoveFile(fullName, destinationFile);
         }
 
