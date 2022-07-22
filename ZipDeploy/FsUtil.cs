@@ -38,17 +38,31 @@ namespace ZipDeploy
                 $"moving file {file} to {destinationFile}");
         }
 
+        public void MoveDirectory(string directory, string destinationDirectory)
+        {
+            Try(() => Directory.Move(directory, destinationDirectory),
+                () => Directory.Exists(directory),
+                $"moving directory {directory} to {destinationDirectory}");
+        }
+
         public void PrepareForDelete(string fullName)
         {
-            if (!File.Exists(fullName))
+            var fileExists = File.Exists(fullName);
+            var directoryExists = !fileExists && Directory.Exists(fullName);
+
+            if (!fileExists && !directoryExists)
                 return;
 
             var fileName = Path.GetFileName(fullName);
             var path = Path.GetDirectoryName(fullName);
-            var destinationFile = Path.Combine(path, $"{ForDeletePrefix}{fileName}{ForDeletePostfix}");
+            var destinationFullName = Path.Combine(path, $"{ForDeletePrefix}{fileName}{ForDeletePostfix}");
 
-            PrepareForDelete(destinationFile);
-            MoveFile(fullName, destinationFile);
+            PrepareForDelete(destinationFullName);
+
+            if (fileExists)
+                MoveFile(fullName, destinationFullName);
+            else
+                MoveDirectory(fullName, destinationFullName);
         }
 
         public bool IsForDelete(string fullName)

@@ -171,6 +171,19 @@ namespace ZipDeploy.Tests
         }
 
         [Test]
+        public async Task Unzip_CanUnzipFileWithSameNameAsDirectory()
+        {
+            ExistingFiles(@"wwwroot\licence\licence");
+
+            await CreateZipAsync(ZipDeployOptions.DefaultNewPackageFileName,
+                @"wwwroot\licence");
+
+            await NewUnzipper().UnzipAsync();
+
+            File.ReadAllText(@"wwwroot\licence").Should().Be(@"zipped content of wwwroot\licence");
+        }
+
+        [Test]
         public async Task CaseInsensitiveFilesAreHandled()
         {
             ExistingFiles("file.txt", "file.dll");
