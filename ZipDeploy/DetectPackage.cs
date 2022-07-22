@@ -10,9 +10,10 @@ namespace ZipDeploy
     {
         event Func<Task> PackageDetectedAsync;
         Task StartedAsync(bool hadStartupErrors);
+        void Stop();
     }
 
-    public class DetectPackage : IDetectPackage
+    public class DetectPackage : IDetectPackage, IDisposable
     {
         private ILogger<DetectPackage> _logger;
         private ZipDeployOptions _options;
@@ -68,6 +69,22 @@ namespace ZipDeploy
             return Task.CompletedTask;
         }
 
+        public void Dispose()
+        {
+            Stop();
+        }
+
+        public void Stop()
+        {
+            using (_fsw)
+            {
+                if (_fsw != null)
+                    _fsw.EnableRaisingEvents = false;
+
+                _fsw = null;
+            }
+        }
+
         private void OnError(object sender, ErrorEventArgs e)
         {
             var ex = e?.GetException();
@@ -88,7 +105,7 @@ namespace ZipDeploy
                 if (PackageDetectedAsync != null)
                     await PackageDetectedAsync();
 
-                _fsw.EnableRaisingEvents = false;
+                Stop();
             });
         }
     }

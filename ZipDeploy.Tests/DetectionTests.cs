@@ -34,16 +34,17 @@ namespace ZipDeploy.Tests
         public async Task WhenPackageDeplyed_PackageIsDetected()
         {
             var detected = false;
-            var detector = NewDetectPackage();
+            using (var detector = NewDetectPackage())
+            {
+                detector.PackageDetectedAsync += () => { detected = true; return Task.CompletedTask; };
+                await detector.StartedAsync(hadStartupErrors: false);
 
-            detector.PackageDetectedAsync += () => { detected = true; return Task.CompletedTask; };
-            await detector.StartedAsync(hadStartupErrors: false);
+                detected.Should().Be(false);
 
-            detected.Should().Be(false);
+                File.WriteAllBytes(ZipDeployOptions.DefaultNewPackageFileName, new byte[0]);
 
-            File.WriteAllBytes(ZipDeployOptions.DefaultNewPackageFileName, new byte[0]);
-
-            Wait.For(TimeSpan.FromSeconds(1), () => detected.Should().Be(true));
+                Wait.For(TimeSpan.FromSeconds(1), () => detected.Should().Be(true));
+            }
         }
 
         private DetectPackage NewDetectPackage(Action<ZipDeployOptions> configure = null)

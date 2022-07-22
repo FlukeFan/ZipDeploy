@@ -57,6 +57,7 @@ namespace ZipDeploy
         async Task IHostedService.StopAsync(CancellationToken cancellationToken)
         {
             _logger.LogInformation("Application stopped");
+            _detectPackage.Stop();
 
             await _logger.RetryAsync(_options, "ZipDeploy before shutdown", async () =>
             {

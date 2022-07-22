@@ -66,6 +66,8 @@ namespace ZipDeploy
                 }
                 finally
                 {
+                    provider.GetRequiredService<IDetectPackage>().Stop();
+
                     await logger.RetryAsync(options, "ZipDeploy before shutdown", async () =>
                     {
                         if (File.Exists(Path.Combine(Environment.CurrentDirectory, options.NewPackageFileName)))
