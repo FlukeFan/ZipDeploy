@@ -58,7 +58,19 @@ namespace ZipDeploy
             var directoryExists = !fileExists && Directory.Exists(fullName);
 
             if (!fileExists && !directoryExists)
+            {
+                var parent = Path.GetDirectoryName(fullName);
+
+                while (!string.IsNullOrWhiteSpace(parent))
+                {
+                    if (File.Exists(parent))
+                        PrepareForDelete(parent);
+
+                    parent = Path.GetDirectoryName(parent);
+                }
+
                 return;
+            }
 
             var fileName = Path.GetFileName(fullName);
             var path = Path.GetDirectoryName(fullName);
